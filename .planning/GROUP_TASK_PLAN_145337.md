@@ -60,7 +60,7 @@ Service C: Identity and Partner Service
 
 ## 3) Team Delivery Model (Each Group Owns One Service End-to-End)
 
-Group A (2 repo owners, same group)
+Group A
 - Owns Service A from extraction to ECS deployment.
 - Reason: highest core business complexity and highest frontend coupling.
 - End-to-end ownership:
@@ -71,7 +71,7 @@ Group A (2 repo owners, same group)
   - CloudWatch log verification
   - Service-level demo and evidence package
 
-Group B (solo member)
+Group B
 - Owns Service C from extraction to ECS deployment.
 - Reason: manageable functional scope but high security responsibility.
 - End-to-end ownership:
@@ -83,7 +83,7 @@ Group B (solo member)
 - Support model:
   - Team Lead provides architecture and security review checkpoints.
 
-Group C (mixed pair)
+Group C
 - Owns Service B from extraction to ECS deployment.
 - Reason: moderate-high flow complexity and data consistency risk.
 - End-to-end ownership:
@@ -92,13 +92,6 @@ Group C (mixed pair)
   - ECR image push for Service B
   - ECS Fargate task and service for Service B
   - Saga workflow implementation (Booking to Payment flow)
-
-Team Lead (cross-service support role)
-- Leads AWS infrastructure setup (ECS cluster, ALB, RDS, IAM)
-- Owns CI/CD pipeline setup (CodePipeline)
-- Owns cross-service standards and final integration review
-- Compiles technical report and presentation
-- Does not replace ownership of any group
 
 ## 4) Service Complexity and Difficulty Analysis (From Current Code)
 
