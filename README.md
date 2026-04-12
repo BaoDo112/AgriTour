@@ -1,174 +1,157 @@
-# 🌾 AgriTour – From Farm to Soul 
+# 🌾 AgriTour – From Farm to Soul
 Connecting People with Nature, Culture, and Local Farmers.
-
-### 🌐 Live Website  
-https://agriculturaltour.onrender.com  
-
-### 🛠 Backend API  
-https://agritourweb.onrender.com  
-
-### 📘 API Documentation  
-https://agritourweb.onrender.com/api-docs/  
 
 ---
 
-## 🔐 Demo Accounts (Role-Based Access)
+## 📋 Project Status: SOA Migration
 
-| Role      | Email                | Password |
-|-----------|----------------------|----------|
-| Admin     | admin@gmail.com      | 123456   |
-| Partner   | partner@gmail.com    | 123456   |
-| Customer  | customer@gmail.com   | 123456   |
+This project is being migrated from a monolithic architecture to **microservices** deployed on **AWS**.
 
-These accounts allow you to test different permission levels across the system (managing tours, viewing data, creating tours, etc.)
+### Target Architecture
+```
+Client → S3 (Frontend) → ALB → ECS Fargate (3 Services) → RDS MySQL
+```
+
+### 3 Microservices
+| Service | Scope | Port | Owner |
+|---------|-------|------|-------|
+| Tour Catalog | Tours, categories, regions | 3001 | Group A |
+| Booking Billing | Bookings, payments, invoices | 3002 | Group C |
+| Identity Partner | Auth, users, partners | 3003 | Group B |
+
+### AWS Services Used
+Docker, Amazon ECR, Amazon ECS Fargate, Application Load Balancer, Amazon RDS, CloudWatch, CodePipeline/CodeDeploy
+
+### Planning Documents
+See `.planning/` directory for:
+- `ROADMAP.md` — 6 execution phases
+- `REQUIREMENTS.md` — 16 tracked requirements
+- `GROUP_TASK_PLAN_145337.md` — team execution contract
+- `phases/` — detailed PLAN.md for each phase
+- `codebase/MICROSERVICES-STRUCTURE.md` — target directory structure
 
 ---
 
 ## 🌿 Introduction
 
-AgriTour is a Vietnamese agritourism platform that connects local farmers with travelers seeking authentic, nature-rich experiences.  
-Customers can explore real farm life, participate in hands-on activities, and enjoy peaceful countryside environments — all hosted and managed directly by farmers.  
-Our mission is to support farmers, promote rural tourism, and bring meaningful nature experiences to everyone.
+AgriTour is a Vietnamese agritourism platform that connects local farmers with travelers seeking authentic, nature-rich experiences.
+Customers can explore real farm life, participate in hands-on activities, and enjoy peaceful countryside environments — all hosted and managed directly by farmers.
 
 The platform includes:
-- A **ReactJS frontend** for customers and partners  
-- A **Node.js/Express backend** providing secure API services  
-- A **MySQL database** storing tours, users, partners, and bookings  
-
-AgriTour’s goal is to promote Vietnam’s agricultural tourism, support local farmers, and create meaningful, sustainable travel experiences.
+- A **ReactJS frontend** (to be deployed on S3)
+- **3 Node.js/Express microservices** (deployed on ECS Fargate)
+- A **MySQL database** on Amazon RDS (3 logical databases)
 
 ---
 
 ## ✨ Features Overview
 
-### 🌱 1. Farmer–Customer Connection
-AgriTour creates a digital bridge between **local Vietnamese farmers** and **customers seeking nature-based experiences**.  
-The platform highlights authentic farm life, allowing travelers to join activities such as harvesting, cooking, and exploring rural landscapes — all guided directly by the farmers themselves.
+### 🌱 Farmer–Customer Connection
+Digital bridge between local Vietnamese farmers and customers seeking nature-based experiences.
 
----
+### 👨‍🌾 Partner Features
+- Create, edit, delete farm experience tours
+- Manage customer bookings
+- Update pricing, schedules, available slots
 
-### 👨‍🌾 2. Partner Features
-Farmers act as Partners and have full control over the tours they create.  
-They can:
-- Create new farm experience tours  
-- Edit or delete their own tours  
-- Manage customer bookings for their tours  
-- Update pricing, schedules, available slots, and tour descriptions  
-- Maintain all content related to their farm  
-- Monitor customer interest and tour performance  
+### 🧍‍♂️ Customer Features
+- Explore tours across different regions
+- View detailed information: images, activities, price, availability
+- Choose tickets and make bookings
 
-Partners help bring authentic farm-life experiences to travelers while earning fair income through tourism.
+### 🛡️ Admin Features
+- Approve tour packages submitted by farmers
+- Manage all partners, tours, customers, and bookings
 
----
-
-### 🧍‍♂️ 3. Customer Features
-Customers are the main users of the platform.  
-They can:
-- Explore tours across different regions  
-- View detailed information: images, activities, price, availability  
-- Choose number of tickets and make a booking  
-- Enjoy intuitive browsing and responsive UI  
-- Connect directly with nature through curated farm experiences  
-
-Customers are the heart of “From Farm to Soul” — people looking for peace, learning, and adventure.
-
----
-
-### 🛡️ 4. Admin Features
-Admins manage the entire platform and ensure quality control.  
-They can:
-- Approve tour packages submitted by farmers  
-- Manage all partners  
-- Manage all tours across the system  
-- Manage customers and their bookings  
-- Ensure safety, authenticity, and correctness of tour information  
-- Oversee reports and system status  
-
-Admins are responsible for maintaining a trustworthy farm-tour ecosystem.
-
----
-
-### 🧭 5. Explore Agritourism Tours
-Users can browse multiple types of farm experiences:
-- Seasonal harvesting tours  
-- Farmstay relaxation  
-- Educational agricultural workshops  
-- Eco-friendly and nature tours  
-- Traditional cooking experiences  
-- Village culture and rural lifestyle activities  
-
-Each tour promotes Vietnamese culture and rural heritage.
-
----
-
-### 🤖 6. AI Chatbot – Smart Tour Assistant (Highlight Feature)
-AgriTour includes an integrated **AI-powered chatbot** that helps customers find suitable tours based on:
-- Travel date (e.g., Tet holiday, weekend)
-- Location preferences
-- Budget
-- Tour type (farmstay, harvesting, cooking, eco-tour…)
-
-The AI assistant:
-- Pulls real tour data directly from the **database**
-- Gives instant, relevant suggestions
-- Helps users navigate tours faster
-- Enhances the overall user experience with natural conversation
-
-This is one of AgriTour’s most unique and innovative features.
-
----
-
-### 🎨 7. Modern UI/UX Design
-- Beautiful banner sections  
-- Promotion tour highlights  
-- Mission & Vision with nature-based backgrounds  
-- Clean and responsive interface across all devices
-- Region-based tour filtering
-
----
-
-### 🔐 8. Secure Authentication & API
-- JWT-based login system  
-- Role-based authorization (Admin / Farmer / Customer)  
-- Secure route protection  
-- Full Swagger API documentation  
-
----
-
-### 📦 9. Backend System Features
-- RESTful API  
-- CRUD operations for tours, users, partners  
-- Booking management  
-- Error handling & middleware  
+### 🤖 AI Chatbot – Smart Tour Assistant
+AI-powered chatbot helping customers find suitable tours based on date, location, budget, and preferences.
 
 ---
 
 ## 🛠 Tech Stack
 
-### **Frontend**
-- ReactJS  
-- React Router  
-- Context API  
-- CSS (custom UI components)  
+### Frontend
+- ReactJS, React Router, Context API, CSS
 
-### **Backend**
-- Node.js  
-- Express.js  
-- Mysql
-- JWT Authentication  
-- Swagger  
+### Backend (Microservices)
+- Node.js, Express.js, MySQL (mysql2), JWT Authentication, Swagger
 
-### **Deployment**
-- Render (Frontend & Backend)  
+### Infrastructure
+- Docker, Amazon ECR, Amazon ECS Fargate
+- Application Load Balancer, Amazon RDS MySQL
+- Amazon S3, CloudWatch, CodePipeline
 
 ---
 
 ## 🚀 How to Run Locally
 
-```bash
-# Install dependencies
-npm install
+### Prerequisites
+- Node.js 20+
+- Docker and Docker Compose
 
-# Start development
-npm start
+### Quick Start (Docker)
+```bash
+# Clone the repository
+git clone <repo-url>
+cd AgriTour
+
+# Start all services with Docker Compose
+cd infra
+docker-compose up --build
+
+# Services will be available at:
+# Tour Catalog:     http://localhost:3001
+# Booking Billing:  http://localhost:3002
+# Identity Partner: http://localhost:3003
+```
+
+### Manual Start (Development)
+```bash
+# Frontend
+cd frontend
+cp .env.example .env
+npm install
 npm run dev
+
+# Each service (in separate terminals)
+cd services/tour-catalog
+cp .env.example .env
+npm install
+node server.js
+```
+
+### Environment Variables
+Copy `.env.example` to `.env` in each service directory and configure:
+- `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`
+- `JWT_SECRET`
+- `PORT`
+
+---
+
+## 📁 Project Structure
+
+```
+AgriTour/
+├── services/                    # Microservices
+│   ├── tour-catalog/            # Service A (Port 3001)
+│   ├── booking-billing/         # Service B (Port 3002)
+│   └── identity-partner/       # Service C (Port 3003)
+├── frontend/                    # React SPA
+├── shared/                      # API contracts and DB schemas
+├── infra/                       # Docker Compose, ECS task defs, IAM
+├── docs/                        # Report, architecture diagram
+└── .planning/                   # Project planning docs
+```
+
+See `.planning/codebase/MICROSERVICES-STRUCTURE.md` for full details.
+
+---
+
+## 👥 Team
+
+| Group | Service Ownership | Members |
+|-------|-------------------|---------|
+| Group A | Tour Catalog (Service A) | 2 members |
+| Group B | Identity Partner (Service C) | 1 member |
+| Group C | Booking Billing (Service B) | 2 members |
+| Team Lead | Cross-service + Infrastructure | 1 member |

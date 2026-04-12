@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Planning - internal analysis docs (not needed by team)
+.planning/codebase/ARCHITECTURE.md
+.planning/codebase/CONCERNS.md
+.planning/codebase/CONVENTIONS.md
+.planning/codebase/INTEGRATIONS.md
+.planning/codebase/STACK.md
+.planning/codebase/STRUCTURE.md
+.planning/codebase/TESTING.md
+
+# Legacy monolith (keep during dev, exclude from submission branch)
+# backend-legacy/
