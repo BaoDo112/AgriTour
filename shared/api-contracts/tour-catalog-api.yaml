@@ -1,0 +1,134 @@
+openapi: 3.0.0
+info:
+  title: AgriTour - Tour Catalog API
+  description: API documentation for Service A (Group A). This service manages tour listings, categories, and regional filtering.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3001
+    description: Local Development Server
+
+paths:
+  /health:
+    get:
+      summary: Service Health Check
+      description: Returns the operational status of the service.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  service:
+                    type: string
+                    example: tour-catalog
+
+  /api/tours:
+    get:
+      summary: Retrieve all tours
+      description: Returns a list of all available agritourism tours.
+      responses:
+        '200':
+          description: A list of tours
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tour'
+
+    post:
+      summary: Create a new tour
+      description: Allows partners or admins to add a new tour to the catalog.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TourInput'
+      responses:
+        '201':
+          description: Tour created successfully
+        '401':
+          description: Unauthorized - Missing or invalid token
+        '403':
+          description: Forbidden - Insufficient permissions
+
+  /api/tours/{id}:
+    get:
+      summary: Get tour details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tour details found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tour'
+        '404':
+          description: Tour not found
+
+components:
+  schemas:
+    Tour:
+      type: object
+      properties:
+        tour_id:
+          type: integer
+        tour_name:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        price:
+          type: number
+          format: float
+        region_id:
+          type: integer
+        category_id:
+          type: integer
+        image_url:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+
+    TourInput:
+      type: object
+      required:
+        - tour_name
+        - region_id
+        - category_id
+        - price
+      properties:
+        tour_name:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        region_id:
+          type: integer
+        category_id:
+          type: integer
+        price:
+          type: number
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
