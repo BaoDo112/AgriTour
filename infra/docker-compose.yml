@@ -1,3 +1,58 @@
+services:
+  booking-billing:
+    build:
+     context: ../services/booking-billing
+     dockerfile: Dockerfile
+    container_name: agritour-booking-billing
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DB_HOST: mysql-booking
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: devpassword
+      DB_NAME: agritour_booking
+      TOUR_CATALOG_URL: http://tour-catalog:3001
+      TOUR_FETCH_TIMEOUT_MS: 1500
+      TOUR_FETCH_RETRIES: 1
+      TOUR_CATALOG_PROVIDER_ORDER: request,mock
+      TOUR_CATALOG_FALLBACK: mock
+      JWT_SECRET: dev-jwt-secret
+    depends_on:
+      mysql-booking:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - booking-billing-net
+
+  mysql-booking:
+    image: mysql:8.0
+    container_name: agritour-booking-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: devpassword
+      MYSQL_DATABASE: agritour_booking
+    volumes:
+      - mysql-booking-data:/var/lib/mysql
+      - ../shared/db-schemas/agritour_booking.sql:/docker-entrypoint-initdb.d/01-agritour_booking.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pdevpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - booking-billing-net
+
+volumes:
+  mysql-booking-data:
+
+networks:
+  booking-billing-net:
+    driver: bridge
 version: '3.8'
 
 services:
