@@ -53,3 +53,39 @@ volumes:
 networks:
   booking-billing-net:
     driver: bridge
+version: '3.8'
+
+services:
+  tour-catalog:
+    build: 
+      context: ../services/tour-catalog
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DB_HOST=db-agritour
+      - DB_PORT=3306
+      - DB_USER=agritour
+      - DB_PASSWORD=your_password
+      - DB_NAME=agritour_catalog
+    depends_on:
+      db-agritour:
+        condition: service_healthy
+
+  db-agritour:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=agritour_catalog
+      - MYSQL_USER=agritour
+      - MYSQL_PASSWORD=your_password
+    volumes:
+      - ../shared/db-schemas:/docker-entrypoint-initdb.d 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
