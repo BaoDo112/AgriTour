@@ -1,311 +1,245 @@
 const db = require("../config/db");
 const { resolveTourSnapshot } = require("../integrations/tourCatalogAdapter");
 
-const normalizeBooleanFlag = (value) => {
-	if (value === true || value === 1 || value === "1") return 1;
-	return 0;
-};
-
-const normalizeInt = (value, defaultValue = 0) => {
-	const num = Number(value);
-	if (Number.isNaN(num)) return defaultValue;
-	return Math.trunc(num);
-};
-
-const normalizePrice = (value, defaultValue = null) => {
-	if (value === undefined || value === null || value === "") return defaultValue;
-	const num = Number(value);
-	if (Number.isNaN(num)) return defaultValue;
-	return num;
-};
-
-const toNullable = (value, defaultValue = null) => {
-	if (value === undefined) return defaultValue;
-	return value;
-};
-
-const keepOrIncoming = (incoming, existing) => {
-	if (incoming === undefined) return existing;
-	return incoming;
-};
-
-const toSqlDate = (value) => {
-	if (!value) return null;
-	const d = new Date(value);
-	if (Number.isNaN(d.getTime())) return null;
-	return d.toISOString().slice(0, 10);
-};
-
-// Create booking
+// ===================================================
+//  CREATE BOOKING (Customer creates booking)
+// ===================================================
 exports.createBooking = async (req, res) => {
-	try {
-		const {
-			user_id,
-			tour_id,
-			num_people,
-			customer_name,
-			email,
-			phone,
-			address,
-			notes,
-			adults,
-			children,
-			small_children,
-			infants,
-			visa_option,
-			visa_count,
-			single_room_option,
-			single_room_count,
-			payment_method,
-			total_price: payloadTotalPrice,
-		} = req.body;
+  const {
+    user_id,
+    tour_id,
+    num_people,
+    total_price,
 
-		if (!user_id || !tour_id || !num_people) {
-			return res.status(400).json({
-				message: "Missing required fields: user_id, tour_id, num_people",
-			});
-		}
+    customer_name,
+    email,
+    phone,
+    address,
+    notes,
 
-		const normalizedNumPeople = normalizeInt(num_people, 0);
-		if (normalizedNumPeople <= 0) {
-			return res.status(400).json({
-				message: "num_people must be greater than 0",
-			});
-		}
+    adults,
+    children,
+    small_children,
+    infants,
 
-		const { tour, source: tourSource } = await resolveTourSnapshot(tour_id, req.body);
+    visa_option,
+    visa_count,
+    single_room_option,
+    single_room_count,
 
-		const tourUnitPrice = tour?.price != null ? Number(tour.price) : null;
-		const totalPriceCandidate =
-			payloadTotalPrice != null
-				? normalizePrice(payloadTotalPrice)
-				: tourUnitPrice != null
-					? tourUnitPrice * normalizedNumPeople
-					: null;
+    payment_method
+  } = req.body;
 
-		if (totalPriceCandidate == null || Number.isNaN(totalPriceCandidate)) {
-			return res.status(400).json({
-				message:
-					"Missing total_price and cannot derive from tour data. Provide total_price or a valid tour snapshot.",
-			});
-		}
+  // --- Validate ---
+  if (!user_id || !tour_id || !num_people || !total_price) {
+    return res.status(400).json({ message: "Missing required fields!" });
+  }
 
-		const tourStartDate = toSqlDate(tour?.start_date);
-		const tourEndDate = toSqlDate(tour?.end_date);
+  // --- Resolve Tour Snapshot (Saga / Cross-Service Integration) ---
+  const { tour: tourSnapshot, source } = await resolveTourSnapshot(tour_id, req.body);
+  
+  const tourTitle = tourSnapshot ? tourSnapshot.tour_name : null;
+  const tourImageUrl = tourSnapshot ? tourSnapshot.image_url : null;
+  let tourStartDate = tourSnapshot ? tourSnapshot.start_date : null;
+  let tourEndDate = tourSnapshot ? tourSnapshot.end_date : null;
+  const tourUnitPrice = tourSnapshot ? tourSnapshot.price : null;
 
-		const sql = `
-			INSERT INTO bookings (
-				user_id, tour_id, booking_date,
-				tour_title, tour_image_url, tour_start_date, tour_end_date, tour_unit_price,
-				num_people, total_price, status,
-				customer_name, email, phone, address, notes,
-				adults, children, small_children, infants,
-				visa_option, visa_count,
-				single_room_option, single_room_count,
-				payment_method
-			)
-			VALUES (?, ?, NOW(),
-				?, ?, ?, ?, ?,
-				?, ?, 'pending',
-				?, ?, ?, ?, ?,
-				?, ?, ?, ?,
-				?, ?,
-				?, ?,
-				?
-			)
-		`;
+  // MySQL DATE format fix if timestamps are provided
+  if (tourStartDate && typeof tourStartDate === 'string') {
+    tourStartDate = tourStartDate.split('T')[0];
+  }
+  if (tourEndDate && typeof tourEndDate === 'string') {
+    tourEndDate = tourEndDate.split('T')[0];
+  }
 
-		const params = [
-			user_id,
-			tour_id,
-			tour?.tour_name || null,
-			tour?.image_url || null,
-			tourStartDate,
-			tourEndDate,
-			tourUnitPrice,
-			normalizedNumPeople,
-			totalPriceCandidate,
-			toNullable(customer_name),
-			toNullable(email),
-			toNullable(phone),
-			toNullable(address),
-			toNullable(notes),
-			normalizeInt(adults, 0),
-			normalizeInt(children, 0),
-			normalizeInt(small_children, 0),
-			normalizeInt(infants, 0),
-			normalizeBooleanFlag(visa_option),
-			normalizeInt(visa_count, 0),
-			normalizeBooleanFlag(single_room_option),
-			normalizeInt(single_room_count, 0),
-			payment_method || "cash",
-		];
+  const sql = `
+    INSERT INTO bookings (
+      user_id, tour_id, 
+      tour_title, tour_image_url, tour_start_date, tour_end_date, tour_unit_price,
+      booking_date,
+      num_people, total_price, status,
 
-		const [result] = await db.execute(sql, params);
+      customer_name, email, phone, address, notes,
+      adults, children, small_children, infants,
+      visa_option, visa_count,
+      single_room_option, single_room_count,
+      payment_method
+    )
+    VALUES (?, ?,
+      ?, ?, ?, ?, ?,
+      NOW(),
+      ?, ?, 'pending',
+      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?,
+      ?, ?,
+      ?
+    )
+  `;
 
-		return res.status(201).json({
-			message: "Booking created successfully!",
-			booking_id: result.insertId,
-			tour_source: tourSource,
-		});
-	} catch (err) {
-		return res.status(500).json({ error: err.message || err });
-	}
+  const params = [
+    user_id, tour_id,
+    tourTitle, tourImageUrl, tourStartDate, tourEndDate, tourUnitPrice,
+    num_people, total_price,
+
+    customer_name, email, phone, address, notes,
+    adults, children, small_children, infants,
+    visa_option, visa_count,
+    single_room_option, single_room_count,
+    payment_method
+  ];
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("Booking insertion error:", err);
+      return res.status(500).json({ error: err });
+    }
+
+    res.json({
+      message: "Booking created successfully!",
+      booking_id: result.insertId,
+      tour_source: source
+    });
+  });
 };
 
-// Update booking only when unpaid
-exports.updateBooking = async (req, res) => {
-	try {
-		const { booking_id } = req.params;
 
-		const {
-			num_people,
-			total_price,
-			customer_name,
-			email,
-			phone,
-			address,
-			notes,
-			adults,
-			children,
-			small_children,
-			infants,
-			visa_option,
-			visa_count,
-			single_room_option,
-			single_room_count,
-			payment_method,
-		} = req.body;
+// ===================================================
+//  UPDATE BOOKING (only if NOT paid)
+// ===================================================
+exports.updateBooking = (req, res) => {
+  const { booking_id } = req.params;
 
-		const [rows] = await db.execute("SELECT * FROM bookings WHERE booking_id = ?", [
-			booking_id,
-		]);
+  const {
+    num_people,
+    total_price,
 
-		if (!rows.length) {
-			return res.status(404).json({ message: "Booking not found" });
-		}
+    customer_name,
+    email,
+    phone,
+    address,
+    notes,
 
-		const current = rows[0];
+    adults,
+    children,
+    small_children,
+    infants,
 
-		if (current.status === "confirmed") {
-			return res.status(400).json({ message: "Cannot update after payment" });
-		}
+    visa_option,
+    visa_count,
+    single_room_option,
+    single_room_count,
 
-		const sql = `
-			UPDATE bookings SET
-				num_people = ?, total_price = ?,
-				customer_name = ?, email = ?, phone = ?, address = ?, notes = ?,
-				adults = ?, children = ?, small_children = ?, infants = ?,
-				visa_option = ?, visa_count = ?,
-				single_room_option = ?, single_room_count = ?,
-				payment_method = ?
-			WHERE booking_id = ?
-		`;
+    payment_method
+  } = req.body;
 
-		const params = [
-			normalizeInt(keepOrIncoming(num_people, current.num_people), current.num_people),
-			normalizePrice(keepOrIncoming(total_price, current.total_price), current.total_price),
-			toNullable(keepOrIncoming(customer_name, current.customer_name)),
-			toNullable(keepOrIncoming(email, current.email)),
-			toNullable(keepOrIncoming(phone, current.phone)),
-			toNullable(keepOrIncoming(address, current.address)),
-			toNullable(keepOrIncoming(notes, current.notes)),
-			normalizeInt(keepOrIncoming(adults, current.adults), current.adults),
-			normalizeInt(keepOrIncoming(children, current.children), current.children),
-			normalizeInt(
-				keepOrIncoming(small_children, current.small_children),
-				current.small_children
-			),
-			normalizeInt(keepOrIncoming(infants, current.infants), current.infants),
-			normalizeBooleanFlag(keepOrIncoming(visa_option, current.visa_option)),
-			normalizeInt(keepOrIncoming(visa_count, current.visa_count), current.visa_count),
-			normalizeBooleanFlag(
-				keepOrIncoming(single_room_option, current.single_room_option)
-			),
-			normalizeInt(
-				keepOrIncoming(single_room_count, current.single_room_count),
-				current.single_room_count
-			),
-			keepOrIncoming(payment_method, current.payment_method) || "cash",
-			booking_id,
-		];
+  const check = `SELECT status FROM bookings WHERE booking_id = ?`;
 
-		await db.execute(sql, params);
+  db.query(check, [booking_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
 
-		return res.json({ message: "Booking updated successfully!" });
-	} catch (err) {
-		return res.status(500).json({ error: err.message || err });
-	}
+    if (!result.length)
+      return res.status(404).json({ message: "Booking not found" });
+
+    if (result[0].status === "confirmed")
+      return res.status(400).json({ message: "Cannot update after payment" });
+
+    const sql = `
+      UPDATE bookings SET
+        num_people = ?, total_price = ?,
+        customer_name = ?, email = ?, phone = ?, address = ?, notes = ?,
+        adults = ?, children = ?, small_children = ?, infants = ?,
+        visa_option = ?, visa_count = ?,
+        single_room_option = ?, single_room_count = ?,
+        payment_method = ?
+      WHERE booking_id = ?
+    `;
+
+    const params = [
+      num_people, total_price,
+      customer_name, email, phone, address, notes,
+      adults, children, small_children, infants,
+      visa_option, visa_count,
+      single_room_option, single_room_count,
+      payment_method,
+      booking_id
+    ];
+
+    db.query(sql, params, (err2) => {
+      if (err2) return res.status(500).json({ error: err2 });
+
+      res.json({ message: "Booking updated successfully!" });
+    });
+  });
 };
 
-// Delete booking only when unpaid
-exports.deleteBooking = async (req, res) => {
-	try {
-		const { booking_id } = req.params;
 
-		const [rows] = await db.execute(
-			"SELECT status FROM bookings WHERE booking_id = ?",
-			[booking_id]
-		);
+// ===================================================
+//  DELETE BOOKING (only if unpaid)
+// ===================================================
+exports.deleteBooking = (req, res) => {
+  const { booking_id } = req.params;
 
-		if (!rows.length) {
-			return res.status(404).json({ message: "Booking not found" });
-		}
+  const check = `SELECT status FROM bookings WHERE booking_id = ?`;
 
-		if (rows[0].status === "confirmed") {
-			return res.status(400).json({ message: "Cannot delete after payment" });
-		}
+  db.query(check, [booking_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
 
-		await db.execute("DELETE FROM bookings WHERE booking_id = ?", [booking_id]);
+    if (!result.length)
+      return res.status(404).json({ message: "Booking not found" });
 
-		return res.json({ message: "Booking deleted successfully!" });
-	} catch (err) {
-		return res.status(500).json({ error: err.message || err });
-	}
+    if (result[0].status === "confirmed")
+      return res.status(400).json({ message: "Cannot delete after payment" });
+
+    db.query(`DELETE FROM bookings WHERE booking_id = ?`, [booking_id], (err2) => {
+      if (err2) return res.status(500).json({ error: err2 });
+      res.json({ message: "Booking deleted successfully!" });
+    });
+  });
 };
 
-// Get all bookings of a user (no cross-service JOIN)
-exports.getBookingsByUser = async (req, res) => {
-	try {
-		const { user_id } = req.params;
 
-		const sql = `
-			SELECT
-				booking_id,
-				user_id,
-				tour_id,
-				tour_title,
-				tour_image_url,
-				tour_start_date,
-				tour_end_date,
-				tour_unit_price,
-				num_people,
-				total_price,
-				status,
-				booking_date,
-				customer_name,
-				email,
-				phone,
-				address,
-				notes,
-				adults,
-				children,
-				small_children,
-				infants,
-				visa_option,
-				visa_count,
-				single_room_option,
-				single_room_count,
-				payment_method
-			FROM bookings
-			WHERE user_id = ?
-			ORDER BY booking_date DESC
-		`;
+// ===================================================
+//  GET ALL BOOKINGS FOR A USER
+// ===================================================
+exports.getBookingsByUser = (req, res) => {
+  const { user_id } = req.params;
 
-		const [rows] = await db.execute(sql, [user_id]);
+  const sql = `
+    SELECT 
+      b.booking_id, 
+      b.user_id, 
+      b.tour_id,
+      b.num_people,
+      b.total_price,
+      b.status,
+      b.booking_date,
 
-		return res.json(rows);
-	} catch (err) {
-		return res.status(500).json({ error: err.message || err });
-	}
+      b.customer_name,
+      b.email,
+      b.phone,
+      b.address,
+      b.notes,
+      b.adults,
+      b.children,
+      b.small_children,
+      b.infants,
+
+      b.tour_title AS tour_name,
+      b.tour_image_url AS image_url,
+      b.tour_start_date AS start_date,
+      b.tour_end_date AS end_date,
+      b.tour_unit_price AS price
+
+    FROM bookings b
+    WHERE b.user_id = ?
+    ORDER BY b.booking_date DESC
+  `;
+
+  db.query(sql, [user_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+
+    res.json(result);
+  });
 };
+
