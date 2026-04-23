@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import "./RatingPopup.css";
 
 const RatingPopup = ({ booking, onClose, onSubmit }) => {
@@ -6,8 +7,8 @@ const RatingPopup = ({ booking, onClose, onSubmit }) => {
   const [comment, setComment] = useState("");
 
   return (
-    <div className="rating-overlay" onClick={onClose}>
-      <div className="rating-box" onClick={(e) => e.stopPropagation()}>
+    <div className="rating-overlay">
+      <div className="rating-box">
 
         <h2>Rate Your Tour</h2>
         <p className="tour-name">{booking.tour_name}</p>
@@ -15,11 +16,13 @@ const RatingPopup = ({ booking, onClose, onSubmit }) => {
         {/* ⭐⭐⭐⭐⭐ */}
         <div className="stars">
           {[1,2,3,4,5].map((n) => (
-            <span
+            <button
+              type="button"
               key={n}
               className={`star ${rating >= n ? "active" : ""}`}
               onClick={() => setRating(n)}
-            >★</span>
+              aria-label={`Rate ${n} star${n > 1 ? "s" : ""}`}
+            >★</button>
           ))}
         </div>
 
@@ -45,6 +48,14 @@ const RatingPopup = ({ booking, onClose, onSubmit }) => {
       </div>
     </div>
   )
+}
+
+RatingPopup.propTypes = {
+  booking: PropTypes.shape({
+    tour_name: PropTypes.string,
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
 }
 
 export default RatingPopup

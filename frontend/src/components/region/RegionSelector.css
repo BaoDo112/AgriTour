@@ -17,9 +17,8 @@
   padding: 10px 15px;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
   font-size: 20px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.3s, color 0.3s, transform 0.3s ease, box-shadow 0.3s ease;
   box-sizing: border-box;
 }
 .region-buttons .active {

@@ -1,11 +1,10 @@
-// ... phần import
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context-store/AuthContext";
 import LoginPopup from "../../components/LoginPopup/LoginPopup";
+import { resolveAssetUrl, tourService } from "../../services/api";
 
 import "./TourDetail.css";
-import trip8 from "../../assets/trip8.jpg";
 import dak1 from "../../assets/dak1.jpg";
 import dak12 from "../../assets/dak12.jpg";
 import dak21 from "../../assets/dak21.jpg";
@@ -38,19 +37,16 @@ const formatDate = (dateStr) => {
 const TourDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
 
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL;    
-  const API_BASE = import.meta.env.VITE_API_BASE;
-
   useEffect(() => {
     const loadTour = async () => {
       try {
-        const res = await fetch(`${API_URL}/tours/${id}`);
+        const res = await fetch(`${tourService.apiUrl}/tours/${id}`);
         const data = await res.json();
 
         if (!data || !data.tour_id) {
@@ -59,9 +55,7 @@ const TourDetail = () => {
           setTour({
             id: data.tour_id,
             tour_name: data.tour_name,
-            image_url: data.image_url
-              ? `${API_BASE}${data.image_url}`
-              : "/fallback.jpg",
+            image_url: resolveAssetUrl(tourService.baseUrl, data.image_url) || "/fallback.jpg",
             description: data.description || "No description available.",
             location: data.location || "Updating...",
             start_date: formatDate(data.start_date),
@@ -279,8 +273,7 @@ const TourDetail = () => {
         showLogin && (
           <LoginPopup
             setShowLogin={setShowLogin}
-            setUser={(u) => {
-              setUser(u);
+            onLoginSuccess={() => {
               navigate(`/book-tour/${tour.id}`);
             }}
           />

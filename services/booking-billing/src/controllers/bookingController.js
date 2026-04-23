@@ -26,7 +26,6 @@ exports.createBooking = async (req, res) => {
     visa_count,
     single_room_option,
     single_room_count,
-
     payment_method
   } = req.body;
 

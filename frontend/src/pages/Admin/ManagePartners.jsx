@@ -40,7 +40,6 @@ const ManagePartners = () => {
   const [locationFilter, setLocationFilter] = useState('');
   const [minTours, setMinTours] = useState('');
   const [minBookings, setMinBookings] = useState('');
-  const [lockedOnly, setLockedOnly] = useState(false);
 
   const [openId, setOpenId] = useState(null);
   const menuRef = useRef();
@@ -80,9 +79,8 @@ const ManagePartners = () => {
   const matchesLocation = locationFilter ? partner.location === locationFilter : true;
   const matchesTours = minTours ? partner.publishedTours >= parseInt(minTours) : true;
   const matchesBookings = minBookings ? partner.totalBookings >= parseInt(minBookings) : true;
-  const matchesLocked = lockedOnly ? partner.locked === true : true;
 
-  return matchesSearch && matchesLocation && matchesTours && matchesBookings && matchesLocked;
+  return matchesSearch && matchesLocation && matchesTours && matchesBookings;
   });
 
 

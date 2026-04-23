@@ -146,12 +146,3 @@ AgriTour/
 See `.planning/codebase/MICROSERVICES-STRUCTURE.md` for full details.
 
 ---
-
-## 👥 Team
-
-| Group | Service Ownership | Members |
-|-------|-------------------|---------|
-| Group A | Tour Catalog (Service A) | 2 members |
-| Group B | Identity Partner (Service C) | 1 member |
-| Group C | Booking Billing (Service B) | 2 members |
-| Team Lead | Cross-service + Infrastructure | 1 member |

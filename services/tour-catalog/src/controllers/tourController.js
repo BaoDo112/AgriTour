@@ -35,13 +35,11 @@ exports.getTourById = (req, res) => {
       t.available_slots,
       t.status,
       t.image_url,
-
-      u.full_name AS partner_name,
+      t.created_by AS partner_id,
       r.region_name,
       c.category_name
 
     FROM tours t
-    LEFT JOIN users u ON t.created_by = u.user_id
     LEFT JOIN regions r ON t.region_id = r.region_id
     LEFT JOIN categories c ON t.category_id = c.category_id
     WHERE t.tour_id = ?
@@ -173,7 +171,7 @@ exports.reviewTour = (req, res) => {
   console.log("📨 PARAMS RECEIVED:", req.params);
 
   const { tour_id } = req.params;
-  const { action, note, admin_id } = req.body;
+  const { action } = req.body;
 
   if (!["approved", "rejected"].includes(action)) {
     return res.status(400).json({ message: "Invalid action" });
@@ -240,10 +238,9 @@ exports.getAllToursForAdmin = (req, res) => {
       t.end_date,
       t.price,
       t.status,
-      u.full_name AS partner_name,
+      t.created_by AS partner_id,
       r.region_name
     FROM tours t
-    LEFT JOIN users u ON t.created_by = u.user_id
     LEFT JOIN regions r ON t.region_id = r.region_id
     ORDER BY t.tour_id DESC
   `;

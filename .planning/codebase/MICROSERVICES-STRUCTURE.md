@@ -3,6 +3,14 @@
 **Created:** 2026-04-12
 **Purpose:** Define the target directory structure after migrating from monolith to microservices.
 
+## Current Transition Baseline (2026-04-22)
+
+- The repository currently has 2 extracted services that can be validated locally: `services/tour-catalog` and `services/booking-billing`.
+- `identity-partner` is still a planned boundary, not a completed deployable. This is acceptable for local Phase 2 validation, but it keeps Phase 4 security work incomplete.
+- The project brief allows 2 or 3 microservices. If the team decides to finish with 2 services, update Phase 1 contracts and the roadmap so the submission does not claim a third completed service.
+- Priority rule for every phase: stabilize local Docker interoperability first, but keep Dockerfiles, environment variable names, route prefixes, and service boundaries AWS-ready so Phase 3 can reuse them for ECR/ECS with minimal rework.
+- Keep `backend/` as a transition reference until the extracted services cover the required flows. Rename it to `backend-legacy/` or archive it outside the submission branch only after parity is good enough for demo preparation.
+
 ## Current Structure (Monolith)
 
 ```text
@@ -19,6 +27,8 @@ AgriTour/
 ```
 
 ## Target Structure (Microservices)
+
+This section shows the full 3-service target. If the team locks the final scope to 2 services, remove the `identity-partner` branch from the target model and explicitly reassign auth and partner responsibilities before Phase 4 starts.
 
 ```text
 AgriTour/
@@ -148,6 +158,15 @@ AgriTour/
 | backend/server.js | services/{each}/server.js | Each |
 | backend/uploads/ | S3 bucket (agritour-media) | Cloud |
 | backend/swagger.js | services/{each} (optional per service) | Each |
+
+## Legacy Folder Policy
+
+- `backend/` stays readable during extraction because it is still the fastest source of controller logic, SQL assumptions, and route behavior.
+- New work must happen under `services/`, `shared/`, `infra/`, and `docs/`.
+- Once the replacement services cover the demo flow, either:
+  - rename `backend/` to `backend-legacy/`, or
+  - remove it from the submission branch and keep it only in a reference branch.
+- Do not keep frontend or AWS deployment scripts coupled to both the old monolith and the new services at the same time. Pick one active runtime path per environment.
 
 ## Dockerfile Template (Standard for all services)
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import "./SearchModal.css";
 import { tour, list_tour_1, list_tour_2 } from "../../assets/assets";
 import { useNavigate } from "react-router-dom";
@@ -28,7 +29,8 @@ const SearchModal = ({ onClose }) => {
 
         <div className="search-results">
           {filtered.map((t) => (
-            <div
+            <button
+              type="button"
               key={t.id}
               className="search-item"
               onClick={() => {
@@ -36,26 +38,26 @@ const SearchModal = ({ onClose }) => {
                 onClose();
               }}
             >
-            {/* LEFT SIDE */}
-            <div className="search-left">
-              <img src={t.tour_image} alt="" />
+              {/* LEFT SIDE */}
+              <div className="search-left">
+                <img src={t.tour_image} alt={t.tour_name} />
 
-              <div className="search-info">
-                <h4>{t.tour_name}</h4>
-                <p>{t.start_date} — {t.period}</p>
+                <div className="search-info">
+                  <h4>{t.tour_name}</h4>
+                  <p>{t.start_date} — {t.period}</p>
       
-            {/* AVAILABLE STATUS */}
-                <p className={`search-status ${t.available ? "available" : "soldout"}`}>
-                   {t.available ? "Available" : "Sold Out"}
-                </p>
+                  {/* AVAILABLE STATUS */}
+                  <p className={`search-status ${t.available ? "available" : "soldout"}`}>
+                    {t.available ? "Available" : "Sold Out"}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* RIGHT SIDE: PRICE */}
-            <div className="search-price">
-              {t.price}
-            </div>
-          </div>
+              {/* RIGHT SIDE: PRICE */}
+              <div className="search-price">
+                {t.price}
+              </div>
+            </button>
 
           ))}
 
@@ -66,6 +68,10 @@ const SearchModal = ({ onClose }) => {
       </div>
     </div>
   )
+}
+
+SearchModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
 }
 
 export default SearchModal

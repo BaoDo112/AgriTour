@@ -1,6 +1,5 @@
-import React from 'react'
+import React, { useState } from 'react'
 import './Header.css'
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom';
 const Header = () => {
   const images = ['/banner1.jpg', '/header.jpg', '/banner2.jpg'];
@@ -39,13 +38,14 @@ const Header = () => {
 
       {/* Các chấm điều hướng */}
       <div className="dots-container">
-        {images.map((_, index) => (
-          <div
-            key={index}
+        {images.map((image, index) => (
+          <button
+            type="button"
+            key={image}
             className={`dot ${currentImage === index ? 'active' : ''}`}
             onClick={() => handleDotClick(index)}
-          >
-          </div>
+            aria-label={`Go to banner ${index + 1}`}
+          />
         ))}
       </div>
     </div>

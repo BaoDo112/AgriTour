@@ -4,7 +4,7 @@ import { StoreContext } from '../../context-store/StoreContext';
 import './RegionSelector.css';
 import { assets } from '../../assets/assets';
 const RegionSelector = () => {
-  const { region, setRegion, filters, setFilters } = useContext(StoreContext);
+  const { region, setRegion } = useContext(StoreContext);
 
   const handleSelect = (value) => {
     if (region === value) {
@@ -12,10 +12,6 @@ const RegionSelector = () => {
     } else {
       setRegion(value);
     }
-  };
-
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   return (

@@ -22,7 +22,11 @@ app.get('/', (req, res) => {
 
 
 const tourRoutes = require('./src/routes/tourRoutes');
+const categoryRoutes = require('./src/routes/categoryRoutes');
+const regionRoutes = require('./src/routes/regionRoutes');
 app.use('/api/tours', tourRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/regions', regionRoutes);
 
 
 const PORT = process.env.PORT || 3001;

@@ -1,7 +1,7 @@
-import React, { useState , useEffect, useRef} from 'react';
+import React, { useState } from 'react';
 import './Admin.css';
 import { list_tour_1 } from '../../assets/assets';
-const BookingTour = ({user}) => {
+const BookingTour = () => {
    
   const bookings = list_tour_1.map((tour, index) => ({
   id: index + 1,

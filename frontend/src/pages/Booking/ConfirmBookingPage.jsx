@@ -5,6 +5,7 @@ import "./ConfirmBookingPage.css";
 import { useUserTours } from "../../context-store/UserToursContext";
 import { useCart } from "../../context-store/CartContext";
 import { useAuth } from "../../context-store/AuthContext";   //  ADD: Lấy user đang đăng nhập
+import { bookingService } from "../../services/api";
 
 const ConfirmBookingPage = () => {
   const { state } = useLocation();
@@ -13,8 +14,7 @@ const ConfirmBookingPage = () => {
   const { removeBooking } = useCart();
   const { addUpcomingTour } = useUserTours();
 
-  const API_URL = import.meta.env.VITE_API_URL;
-  const API_BASE = import.meta.env.VITE_API_BASE;
+  const API_URL = bookingService.apiUrl;
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "Updating...";
@@ -107,31 +107,31 @@ const ConfirmBookingPage = () => {
           <table className="tour-info-table">
             <tbody>
               <tr>
-                <td className="label">Tour ID</td>
+                <th scope="row" className="label">Tour ID</th>
                 <td>{tour.id}</td>
               </tr>
               <tr>
-                <td className="label">Tour Name</td>
+                <th scope="row" className="label">Tour Name</th>
                 <td>{tour.tour_name}</td>
               </tr>
               <tr>
-                <td className="label">Duration</td>
+                <th scope="row" className="label">Duration</th>
                 <td>{tour.period}</td>
               </tr>
               <tr>
-                <td className="label">Price</td>
+                <th scope="row" className="label">Price</th>
                 <td>{tour.price} / person</td>
               </tr>
               <tr>
-                <td className="label">Start Date</td>
+                <th scope="row" className="label">Start Date</th>
                 <td>{formatDate(tour.start_date)}</td>
               </tr>
               <tr>
-                <td className="label">Departure</td>
+                <th scope="row" className="label">Departure</th>
                 <td>Ho Chi Minh City</td>
               </tr>
               <tr>
-                <td className="label">Available Seats</td>
+                <th scope="row" className="label">Available Seats</th>
                 <td>10</td>
               </tr>
             </tbody>
@@ -146,23 +146,23 @@ const ConfirmBookingPage = () => {
         <table className="confirm-table">
           <tbody>
             <tr>
-              <td>Full Name</td>
+              <th scope="row">Full Name</th>
               <td>{customer.fullName}</td>
             </tr>
             <tr>
-              <td>Email</td>
+              <th scope="row">Email</th>
               <td>{customer.email}</td>
             </tr>
             <tr>
-              <td>Phone Number</td>
+              <th scope="row">Phone Number</th>
               <td>{customer.phone}</td>
             </tr>
             <tr>
-              <td>Address</td>
+              <th scope="row">Address</th>
               <td>{customer.address}</td>
             </tr>
             <tr>
-              <td>Notes</td>
+              <th scope="row">Notes</th>
               <td>{customer.notes || "None"}</td>
             </tr>
           </tbody>

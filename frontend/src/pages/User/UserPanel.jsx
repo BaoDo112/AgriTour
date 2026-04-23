@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./UserPanel.css";
 import TourCard from "./TourCard";
 import { useAuth } from "../../context-store/AuthContext";
+import { bookingService, resolveAssetUrl } from "../../services/api";
 
 // Hàm format ngày dd/mm/yyyy
 const formatDate = (datetimeStr) => {
@@ -23,15 +24,12 @@ const UserPanel = () => {
     cancelled: []
   });
 
-  const API_URL = import.meta.env.VITE_API_URL;     
-  const API_BASE = import.meta.env.VITE_API_BASE; 
-
   useEffect(() => {
     if (!user) return;
 
     const fetchTours = async () => {
       try {
-        const res = await fetch(`${API_URL}/bookings/user/${user.user_id}`);
+        const res = await fetch(`${bookingService.apiUrl}/bookings/user/${user.user_id}`);
         if (!res.ok) throw new Error("Failed to fetch tours");
         const data = await res.json();
 
@@ -42,34 +40,32 @@ const UserPanel = () => {
           cancelled: []
         };
 
-        data.forEach(b => {
-          const start = new Date(b.start_date);
-          const end = new Date(b.end_date);
+        data.forEach((booking) => {
+          const start = new Date(booking.tour_start_date);
+          const end = new Date(booking.tour_end_date);
           const now = new Date();
 
-          let status = "completed";
-          if (now < start) status = "upcoming";
-          else if (now >= start && now <= end) status = "ongoing";
+          let status = booking.status === "cancelled" ? "cancelled" : "completed";
+          if (status !== "cancelled") {
+            if (now < start) status = "upcoming";
+            else if (now >= start && now <= end) status = "ongoing";
+          }
 
           categorized[status].push({
             tour: {
-              id: b.tour_id,
-              tour_name: b.tour_name,
-              tour_image: b.image_url.startsWith("http")
-                ? b.image_url
-                : `${API_BASE}${b.image_url}`,
-              image_url: b.image_url.startsWith("http")
-                ? b.image_url
-                : `${API_BASE}${b.image_url}`,
-              start_date: formatDate(b.start_date),
-              end_date: formatDate(b.end_date),
-              price: b.price
+              id: booking.tour_id,
+              tour_name: booking.tour_title,
+              tour_image: resolveAssetUrl(bookingService.baseUrl, booking.tour_image_url),
+              image_url: resolveAssetUrl(bookingService.baseUrl, booking.tour_image_url),
+              start_date: formatDate(booking.tour_start_date),
+              end_date: formatDate(booking.tour_end_date),
+              price: booking.tour_unit_price,
             },
-            passengerCount: b.num_people,
-            totalAmount: b.total_price,
-            startDate: formatDate(b.start_date),
-            endDate: formatDate(b.end_date),
-            bookingId: b.booking_id
+            passengerCount: booking.num_people,
+            totalAmount: booking.total_price,
+            startDate: formatDate(booking.tour_start_date),
+            endDate: formatDate(booking.tour_end_date),
+            bookingId: booking.booking_id,
           });
         });
 
@@ -102,9 +98,9 @@ const UserPanel = () => {
         {tours[activeTab].length === 0 ? (
           <p>No tours in this category.</p>
         ) : (
-          tours[activeTab].map((item, i) => (
+          tours[activeTab].map((item) => (
             <TourCard
-              key={i}
+              key={item.bookingId}
               item={item}
               status={activeTab}
               onCancel={() => console.log("Cancel", item)}

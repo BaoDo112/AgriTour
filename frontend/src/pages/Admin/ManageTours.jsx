@@ -1,92 +1,87 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./Admin.css";
 import { useAuth } from "../../context-store/AuthContext";
+import { tourService } from "../../services/api";
+
+const getPartnerLabel = (tour) => {
+  if (tour.partner_name) return tour.partner_name;
+  if (tour.partner_id) return `Partner #${tour.partner_id}`;
+  return "Unknown";
+};
+
+const fetchManagedTours = async (token) => {
+  const response = await fetch(`${tourService.apiUrl}/tours/admin/all`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch admin tours");
+  }
+
+  return response.json();
+};
 
 const ManageTours = () => {
   const { user } = useAuth();
   const [tours, setTours] = useState([]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [partnerFilter, setPartnerFilter] = useState("");
   const [regionFilter, setRegionFilter] = useState("");
-  const [selectedTour, setSelectedTour] = useState(null);
-
-
-   const API_URL = import.meta.env.VITE_API_URL;
-
-  // ===========================
-  // Fetch tours
-  // ===========================
-  const fetchTours = async () => {
-    try {
-      const res = await fetch(`${API_URL}/tours/admin/all`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
-      const data = await res.json();
-      console.log("API DATA:", data);
-      setTours([...data]); // ép re-render
-      setCurrentPage(1);
-    } catch (err) {
-      console.error("Error fetching tours:", err);
-    }
-  };
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetchTours();
-  }, [user.token]);
+    if (!user?.token) return;
 
-  // ===========================
-  // APPROVE / REJECT (Optimistic Update)
-  // ===========================
+    const loadTours = async () => {
+      try {
+        const data = await fetchManagedTours(user.token);
+        setTours([...data]);
+        setCurrentPage(1);
+      } catch (error) {
+        console.error("Error fetching tours:", error);
+      }
+    };
+
+    void loadTours();
+  }, [user?.token]);
+
   const handleReview = async (tour_id, action) => {
-  const note = action === "rejected" ? prompt("Reason?") : "";
+    const note = action === "rejected" ? prompt("Reason?") : "";
 
-  // Optimistic UI
-  setTours(prev =>
-    prev.map(t =>
-      t.tour_id === tour_id
-        ? { ...t, status: action, partner_name: t.partner_name }
-        : t
-    )
-  );
+    setTours((prev) =>
+      prev.map((tour) =>
+        tour.tour_id === tour_id ? { ...tour, status: action } : tour
+      )
+    );
 
-  try {
-    const res = await fetch(
-      `${API_URL}/tours/review/${tour_id}`,
-      {
+    try {
+      const response = await fetch(`${tourService.apiUrl}/tours/review/${tour_id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.token}`,
         },
         body: JSON.stringify({ action, note }),
+      });
+
+      if (!response.ok) {
+        alert("Error while approving!");
+        return;
       }
-    );
 
-    if (!res.ok) {
-      alert("Error while approving!");
-      return;
+      const refreshedTours = await fetchManagedTours(user.token);
+      setTours(refreshedTours);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error("Review error:", error);
+      alert("Server error");
     }
+  };
 
-    await fetchTours();
-
-  } catch (err) {
-    alert("Server error");
-  }
-};
-
-
-
-
-
-  // ===========================
-  // FILTERS
-  // ===========================
   const filteredTours = tours.filter((tour) => {
     const matchesSearch = tour.tour_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter ? tour.status === statusFilter : true;
@@ -95,38 +90,23 @@ const ManageTours = () => {
       ? tour.location?.toLowerCase().includes(locationFilter.toLowerCase())
       : true;
     const matchesPartner = partnerFilter
-      ? tour.partner_name?.toLowerCase().includes(partnerFilter.toLowerCase())
+      ? getPartnerLabel(tour).toLowerCase().includes(partnerFilter.toLowerCase())
       : true;
 
-    return (
-      matchesSearch &&
-      matchesStatus &&
-      matchesLocation &&
-      matchesPartner &&
-      matchesRegion
-    );
+    return matchesSearch && matchesStatus && matchesLocation && matchesPartner && matchesRegion;
   });
 
-  // ===========================
-  // PAGINATION
-  // ===========================
-  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const totalPages = Math.ceil(filteredTours.length / itemsPerPage);
-
   const paginatedTours = filteredTours.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // ===========================
-  // UI RENDER
-  // ===========================
   return (
     <div className="booking-tour-container">
       <h2>Manage Tours</h2>
 
-      {/* FILTERS */}
       <div className="partner-filter">
         <input
           type="text"
@@ -164,7 +144,6 @@ const ManageTours = () => {
         </select>
       </div>
 
-      {/* TABLE */}
       <table className="booking-table">
         <thead>
           <tr>
@@ -189,36 +168,25 @@ const ManageTours = () => {
               <td>{tour.start_date?.split("T")[0]}</td>
               <td>{tour.end_date?.split("T")[0]}</td>
               <td>{tour.price}</td>
-              <td>{tour.partner_name || "Unknown"}</td>
-
+              <td>{getPartnerLabel(tour)}</td>
               <td>
                 <span className={`status ${tour.status}`}>{tour.status}</span>
               </td>
-
               <td>
                 <button
                   className="action-btn edit"
-                  onClick={() => setSelectedTour(tour)}
+                  onClick={() => alert(`Edit flow is not implemented yet for tour ${tour.tour_id}`)}
                 >
                   Edit
                 </button>
 
-                {/* NÚT ẨN NGAY KHI KHÔNG CÒN PENDING */}
                 {tour.status === "pending" && (
                   <>
-                    <button
-                      className="action-btn approve"
-                      onClick={async () => {
-                        handleReview(tour.tour_id, "approved");
-                      }}
-                    >
+                    <button className="action-btn approve" onClick={() => handleReview(tour.tour_id, "approved")}>
                       Approve
                     </button>
 
-                    <button
-                      className="action-btn reject"
-                      onClick={() => handleReview(tour.tour_id, "rejected")}
-                    >
+                    <button className="action-btn reject" onClick={() => handleReview(tour.tour_id, "rejected")}>
                       Reject
                     </button>
                   </>
@@ -229,7 +197,6 @@ const ManageTours = () => {
         </tbody>
       </table>
 
-      {/* PAGINATION */}
       <div className="pagination">
         {Array.from({ length: totalPages }, (_, i) => (
           <button
@@ -241,7 +208,6 @@ const ManageTours = () => {
           </button>
         ))}
       </div>
-
     </div>
   );
 };

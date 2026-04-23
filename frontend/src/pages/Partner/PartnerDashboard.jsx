@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import "./PartnerDashboard.css";
 
-const PartnerDashboard = ({ user }) => {
+const PartnerDashboard = () => {
   const [tours, setTours] = useState([]);
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);

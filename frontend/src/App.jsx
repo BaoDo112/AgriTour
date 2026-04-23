@@ -29,7 +29,7 @@ const AppContent = () => {
   
   return (
     <>
-      {showLogin && <LoginPopup setShowLogin={setShowLogin} setUser={setUser} />}
+      {showLogin && <LoginPopup setShowLogin={setShowLogin} />}
       <div className="app">
         <Navbar setShowLogin={setShowLogin} user={user} setUser={setUser} />
         <div className="app-content">

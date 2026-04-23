@@ -4,17 +4,17 @@ export function parsePrice(priceString) {
   if (typeof priceString === "number") return priceString;
 
   // Remove $ and spaces
-  priceString = priceString.replace(/[$\s]/g, "");
+  priceString = priceString.replaceAll("$", "").replaceAll(/\s+/g, "");
 
   // Remove thousand separators
-  priceString = priceString.replace(/,/g, "");
+  priceString = priceString.replaceAll(",", "");
 
   return Number(priceString);
 }
 
 export const formatPrice = (value) => {
   const num = Number(value);
-  if (isNaN(num)) return "$0";
+  if (Number.isNaN(num)) return "$0";
   return `$${num}`;
 };
 

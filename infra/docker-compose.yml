@@ -1,8 +1,30 @@
 services:
+  tour-catalog:
+    build:
+      context: ../services/tour-catalog
+      dockerfile: Dockerfile
+    container_name: agritour-tour-catalog
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DB_HOST: mysql-catalog
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: devpassword
+      DB_NAME: agritour_catalog
+      JWT_SECRET: dev-jwt-secret
+    depends_on:
+      mysql-catalog:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - agritour-net
+
   booking-billing:
     build:
-     context: ../services/booking-billing
-     dockerfile: Dockerfile
+      context: ../services/booking-billing
+      dockerfile: Dockerfile
     container_name: agritour-booking-billing
     ports:
       - "3002:3002"
@@ -16,21 +38,44 @@ services:
       TOUR_CATALOG_URL: http://tour-catalog:3001
       TOUR_FETCH_TIMEOUT_MS: 1500
       TOUR_FETCH_RETRIES: 1
-      TOUR_CATALOG_PROVIDER_ORDER: request,mock
+      TOUR_CATALOG_PROVIDER_ORDER: service,request,mock
       TOUR_CATALOG_FALLBACK: mock
       JWT_SECRET: dev-jwt-secret
     depends_on:
       mysql-booking:
         condition: service_healthy
+      tour-catalog:
+        condition: service_started
     restart: unless-stopped
     networks:
-      - booking-billing-net
+      - agritour-net
+
+  mysql-catalog:
+    image: mysql:8.0
+    container_name: agritour-catalog-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: devpassword
+      MYSQL_DATABASE: agritour_catalog
+    volumes:
+      - mysql-catalog-data:/var/lib/mysql
+      - ../shared/db-schemas/agritour_catalog.sql:/docker-entrypoint-initdb.d/01-agritour_catalog.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pdevpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - agritour-net
 
   mysql-booking:
     image: mysql:8.0
     container_name: agritour-booking-mysql
     ports:
-      - "3307:3306"
+      - "3308:3306"
     environment:
       MYSQL_ROOT_PASSWORD: devpassword
       MYSQL_DATABASE: agritour_booking
@@ -45,47 +90,12 @@ services:
       start_period: 20s
     restart: unless-stopped
     networks:
-      - booking-billing-net
+      - agritour-net
 
 volumes:
+  mysql-catalog-data:
   mysql-booking-data:
 
 networks:
-  booking-billing-net:
+  agritour-net:
     driver: bridge
-version: '3.8'
-
-services:
-  tour-catalog:
-    build: 
-      context: ../services/tour-catalog
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3001"
-    environment:
-      - PORT=3001
-      - DB_HOST=db-agritour
-      - DB_PORT=3306
-      - DB_USER=agritour
-      - DB_PASSWORD=your_password
-      - DB_NAME=agritour_catalog
-    depends_on:
-      db-agritour:
-        condition: service_healthy
-
-  db-agritour:
-    image: mysql:8.0
-    ports:
-      - "3307:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=root_password
-      - MYSQL_DATABASE=agritour_catalog
-      - MYSQL_USER=agritour
-      - MYSQL_PASSWORD=your_password
-    volumes:
-      - ../shared/db-schemas:/docker-entrypoint-initdb.d 
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 5s
-      retries: 10

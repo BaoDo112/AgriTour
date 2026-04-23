@@ -1,19 +1,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from "react-router-dom";
 import { parsePrice, formatPrice, calcPriceFromBase } from "../../components/Utils/priceUtils";
-import { useAuth } from "../../context-store/AuthContext";
 import './BookPage.css';
+import { resolveAssetUrl, tourService } from "../../services/api";
 
 const BookPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   // --- ALL HOOKS MUST ALWAYS RUN ---
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [qtyAdult, setQtyAdult] = useState(1);
+  const [qtyAdult, setQtyAdult] = useState("1");
   const [qtyChild, setQtyChild] = useState("0");
   const [qtySmallChild, setQtySmallChild] = useState("0");
   const [qtyInfant, setQtyInfant] = useState("0");
@@ -23,9 +22,6 @@ const BookPage = () => {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
-
-  const API_URL = import.meta.env.VITE_API_URL; 
-  const API_BASE = import.meta.env.VITE_API_BASE;
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "Updating...";
@@ -37,12 +33,10 @@ const BookPage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch(`${API_URL}/tours/${id}`);
+        const res = await fetch(`${tourService.apiUrl}/tours/${id}`);
         const data = await res.json();
         if (data?.tour_id) {
-          const fixedImage = data.image_url?.startsWith("http")
-            ? data.image_url
-            : `${API_BASE}${data.image_url}`;
+          const fixedImage = resolveAssetUrl(tourService.baseUrl, data.image_url);
 
           setTour({
             id: data.tour_id,
@@ -74,10 +68,10 @@ const BookPage = () => {
   }, [tour, basePriceRaw]);
 
   // Convert input string → int
-  const iAdult = parseInt(qtyAdult || 0, 10);
-  const iChild = parseInt(qtyChild || 0, 10);
-  const iSmall = parseInt(qtySmallChild || 0, 10);
-  const iInfant = parseInt(qtyInfant || 0, 10);
+  const iAdult = Number.parseInt(qtyAdult || "0", 10);
+  const iChild = Number.parseInt(qtyChild || "0", 10);
+  const iSmall = Number.parseInt(qtySmallChild || "0", 10);
+  const iInfant = Number.parseInt(qtyInfant || "0", 10);
 
   const subtotalPeople =
     iAdult * priceTable.adult +
@@ -90,9 +84,9 @@ const BookPage = () => {
   // New input clamp
   const clampInt = (value, min = 0) => {
     if (value === "") return "";
-    let n = Number(value);
-    if (isNaN(n)) return "";
-    return n < min ? min : n;
+    const parsedValue = Number.parseInt(value, 10);
+    if (Number.isNaN(parsedValue)) return "";
+    return String(Math.max(parsedValue, min));
   };
 
   // --- AFTER ALL HOOKS → RETURN UI CONDITIONS ---
@@ -126,8 +120,9 @@ const BookPage = () => {
 
       <div className="form-row">
         <div className="form-group">
-          <label>Adults</label>
+          <label htmlFor="qty-adult">Adults</label>
           <input
+            id="qty-adult"
             type="number"
             min="1"
             value={qtyAdult}
@@ -136,8 +131,9 @@ const BookPage = () => {
         </div>
 
         <div className="form-group">
-          <label>Children (5–11y)</label>
+          <label htmlFor="qty-child">Children (5–11y)</label>
           <input
+            id="qty-child"
             type="number"
             min="0"
             value={qtyChild}
@@ -146,8 +142,9 @@ const BookPage = () => {
         </div>
 
         <div className="form-group">
-          <label>Small Children (2–5y)</label>
+          <label htmlFor="qty-small-child">Small Children (2–5y)</label>
           <input
+            id="qty-small-child"
             type="number"
             min="0"
             value={qtySmallChild}
@@ -156,8 +153,9 @@ const BookPage = () => {
         </div>
 
         <div className="form-group">
-          <label>Infants (&lt;2y)</label>
+          <label htmlFor="qty-infant">Infants (&lt;2y)</label>
           <input
+            id="qty-infant"
             type="number"
             min="0"
             value={qtyInfant}
