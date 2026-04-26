@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import './BookingPopup.css'
 const BookingPopup = ({ setShowBooking, selectedTour, user }) => {
   
@@ -21,6 +22,18 @@ const BookingPopup = ({ setShowBooking, selectedTour, user }) => {
       </div>
     </div>
   )
+}
+
+BookingPopup.propTypes = {
+  setShowBooking: PropTypes.func.isRequired,
+  selectedTour: PropTypes.shape({
+    tour_name: PropTypes.string,
+  }).isRequired,
+  user: PropTypes.shape({
+    full_name: PropTypes.string,
+    email: PropTypes.string,
+    phone: PropTypes.string,
+  }).isRequired,
 }
 
 export default BookingPopup

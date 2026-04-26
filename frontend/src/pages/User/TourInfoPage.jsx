@@ -9,7 +9,6 @@ const TourInfoPage = () => {
   if (!state) return <h2 style={{ padding: 40 }}>No tour data found.</h2>;
 
   const { item } = state;
-  const { tour, passengers, totalAmount, customer } = item;
   return (
     <div className="confirm-container">
       
@@ -27,23 +26,23 @@ const TourInfoPage = () => {
           <table className="tour-info-table">
             <tbody>
               <tr>
-                <td className="label">Tour ID</td>
+                <th scope="row" className="label">Tour ID</th>
                 <td>{item.tour.id}</td>
               </tr>
               <tr>
-                <td className="label">Tour Name</td>
+                <th scope="row" className="label">Tour Name</th>
                 <td>{item.tour.tour_name}</td>
               </tr>
               <tr>
-                <td className="label">Passengers</td>
+                <th scope="row" className="label">Passengers</th>
                 <td>{item.passengerCount}</td>
               </tr>
               <tr>
-                <td className="label">Total Price</td>
+                <th scope="row" className="label">Total Price</th>
                 <td>${item.totalAmount}</td>
               </tr>
               <tr>
-                <td className="label">Start Date</td>
+                <th scope="row" className="label">Start Date</th>
                 <td>{item.startDate}</td>
               </tr>
             </tbody>
@@ -58,23 +57,23 @@ const TourInfoPage = () => {
         <table className="confirm-table">
           <tbody>
             <tr>
-              <td>Full Name</td>
+              <th scope="row">Full Name</th>
               <td>{item.customer.fullName}</td>
             </tr>
             <tr>
-              <td>Email</td>
+              <th scope="row">Email</th>
               <td>{item.customer.email}</td>
             </tr>
             <tr>
-              <td>Phone</td>
+              <th scope="row">Phone</th>
               <td>{item.customer.phone}</td>
             </tr>
             <tr>
-              <td>Address</td>
+              <th scope="row">Address</th>
               <td>{item.customer.address}</td>
             </tr>
             <tr>
-              <td>Notes</td>
+              <th scope="row">Notes</th>
               <td>{item.customer.notes || "None"}</td>
             </tr>
           </tbody>
@@ -88,19 +87,19 @@ const TourInfoPage = () => {
         <table className="confirm-table">
           <tbody>
             <tr>
-              <td>Adults</td>
+              <th scope="row">Adults</th>
               <td>{item.passengers.adults}</td>
             </tr>
             <tr>
-              <td>Children (5–11y)</td>
+              <th scope="row">Children (5–11y)</th>
               <td>{item.passengers.children}</td>
             </tr>
             <tr>
-              <td>Small Children (2–5y)</td>
+              <th scope="row">Small Children (2–5y)</th>
               <td>{item.passengers.smallChildren}</td>
             </tr>
             <tr>
-              <td>Infants (&lt;2y)</td>
+              <th scope="row">Infants (&lt;2y)</th>
               <td>{item.passengers.infants}</td>
             </tr>
           </tbody>

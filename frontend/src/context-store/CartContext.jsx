@@ -1,4 +1,5 @@
-import { createContext, useState, useContext } from "react";
+import PropTypes from "prop-types";
+import { createContext, useContext, useMemo, useState } from "react";
 
 //  Tạo context đúng cách
 const CartContext = createContext();
@@ -15,11 +16,20 @@ export const CartProvider = ({ children }) => {
     setPendingBookings((prev) => prev.filter((b) => b.tempId !== id));
   };
 
+  const contextValue = useMemo(
+    () => ({ pendingBookings, addBookingToCart, removeBooking }),
+    [pendingBookings]
+  );
+
   return (
-    <CartContext.Provider value={{ pendingBookings, addBookingToCart, removeBooking }}>
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );
+};
+
+CartProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 //  Hook lấy dữ liệu trong context

@@ -1,13 +1,13 @@
 import React from "react";
+import PropTypes from "prop-types";
 import "./TourCard.css";
-import TourInfoPage from "./TourInfoPage";
 import { useNavigate } from "react-router-dom";
-const TourCard = ({ item, status, onView, onCancel, onRate }) => {
+const TourCard = ({ item, status, onCancel, onRate }) => {
   const navigate = useNavigate();   
 
   return (
     <div className="tour-card">
-      <img src={item.tour.tour_image} alt="" className="tour-card-img" />
+      <img src={item.tour.tour_image} alt={item.tour.tour_name} className="tour-card-img" />
 
       <div className="tour-card-info">
         <h3 className="tour-name">{item.tour.tour_name}</h3>
@@ -48,6 +48,23 @@ const TourCard = ({ item, status, onView, onCancel, onRate }) => {
       </div>
     </div>
   );
+};
+
+TourCard.propTypes = {
+  item: PropTypes.shape({
+    passengerCount: PropTypes.number,
+    totalAmount: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    startDate: PropTypes.string,
+    endDate: PropTypes.string,
+    tour: PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+      tour_name: PropTypes.string,
+      tour_image: PropTypes.string,
+    }).isRequired,
+  }).isRequired,
+  status: PropTypes.string.isRequired,
+  onCancel: PropTypes.func,
+  onRate: PropTypes.func,
 };
 
 export default TourCard;

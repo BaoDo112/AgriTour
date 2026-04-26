@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from "react";
+import PropTypes from "prop-types";
+import { createContext, useContext, useMemo, useState } from "react";
 
 const UserToursContext = createContext();
 
@@ -17,11 +18,20 @@ export const UserToursProvider = ({ children }) => {
     }));
   };
 
+  const contextValue = useMemo(
+    () => ({ tours, addUpcomingTour }),
+    [tours]
+  );
+
   return (
-    <UserToursContext.Provider value={{ tours, addUpcomingTour }}>
+    <UserToursContext.Provider value={contextValue}>
       {children}
     </UserToursContext.Provider>
   );
+};
+
+UserToursProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 export const useUserTours = () => useContext(UserToursContext);

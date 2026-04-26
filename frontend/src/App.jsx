@@ -6,7 +6,7 @@ import LoginPopup from './components/LoginPopup/LoginPopup';
 import Tour from './pages/Tour/Tour';
 import PartnerLayout from './pages/Partner/PartnerLayout';
 import AdminLayout from './pages/Admin/AdminLayout';
-import { AuthProvider, useAuth } from './context-store/AuthContext';
+import { AuthProvider } from './context-store/AuthContext';
 import Dashboard from './pages/Admin/Dashboard';
 import BookingTour from './pages/Admin/BookingTour';
 import BookPage from './pages/Booking/BookPage';
@@ -24,21 +24,20 @@ import News from './pages/News/News';
 import Contact from './pages/Contact/Contact';
 import Footer from './components/Footer/Footer';
 const AppContent = () => {
-  const { user, setUser } = useAuth();
   const [showLogin, setShowLogin] = React.useState(false);
   
   return (
     <>
-      {showLogin && <LoginPopup setShowLogin={setShowLogin} setUser={setUser} />}
+      {showLogin && <LoginPopup setShowLogin={setShowLogin} />}
       <div className="app">
-        <Navbar setShowLogin={setShowLogin} user={user} setUser={setUser} />
+        <Navbar setShowLogin={setShowLogin} />
         <div className="app-content">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/tour" element={<Tour />} />
           <Route path="/tour-details/:id" element={<TourDetail />} />
           <Route path="/book-tour/:id" element={<BookPage/>} />
-          <Route path="/partner/*" element={<PartnerLayout user={user} />} />
+          <Route path="/partner/*" element={<PartnerLayout />} />
           <Route path="/confirm-booking" element={<ConfirmBookingPage />} />
           <Route path="/user/panel" element={<UserPanel />} />
           <Route path="/tour-info" element={<TourInfoPage />} />

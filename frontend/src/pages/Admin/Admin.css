@@ -101,7 +101,11 @@
   min-width: 120px;
 }
 
-.menu-dropdown p {
+.menu-dropdown-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
   padding: 8px 16px;
   margin: 0;
   font-size: 14px;
@@ -110,7 +114,7 @@
   transition: background-color 0.2s;
 }
 
-.menu-dropdown p:hover {
+.menu-dropdown-item:hover {
   background-color: #f0f0f0;
 }
 

@@ -95,13 +95,13 @@ const Footer = () => {
 
     <div className="app-grid">
       <div className="app-item">
-        <img src={assets.ggstore} className="footer-app-1" />
-        <img src={assets.qr1} className="footer-qr" />
+        <img src={assets.ggstore} alt="Google Play" className="footer-app-1" />
+        <img src={assets.qr1} alt="QR code for Google Play download" className="footer-qr" />
       </div>
 
       <div className="app-item">
-        <img src={assets.appstore} className="footer-app-2" />
-        <img src={assets.qr2} className="footer-qr" />
+        <img src={assets.appstore} alt="App Store" className="footer-app-2" />
+        <img src={assets.qr2} alt="QR code for App Store download" className="footer-qr" />
       </div>
     </div>
   </div>
@@ -111,8 +111,8 @@ const Footer = () => {
     <h4 className="footer-title">Certifications</h4>
 
     <div className="cert-grid">
-      <img src={assets.certification} className="cert-logo-1" />
-      <img src={assets.dmca} className="cert-logo-2" />
+      <img src={assets.certification} alt="Business certification" className="cert-logo-1" />
+      <img src={assets.dmca} alt="DMCA protection" className="cert-logo-2" />
     </div>
   </div>
 
@@ -121,12 +121,12 @@ const Footer = () => {
     <h4 className="footer-title">Payment Methods</h4>
 
     <div className="payment-grid">
-      <img src={assets.visa} />
-      <img src={assets.mastercard} />
-      <img src={assets.vnpay} />
-      <img src={assets.momo} />
-      <img src={assets.zalopay} />
-      <img src={assets.shoppee_pay} />
+      <img src={assets.visa} alt="Visa" />
+      <img src={assets.mastercard} alt="Mastercard" />
+      <img src={assets.vnpay} alt="VNPay" />
+      <img src={assets.momo} alt="MoMo" />
+      <img src={assets.zalopay} alt="ZaloPay" />
+      <img src={assets.shoppee_pay} alt="ShopeePay" />
     </div>
   </div>
 

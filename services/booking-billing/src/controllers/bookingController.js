@@ -26,7 +26,6 @@ exports.createBooking = async (req, res) => {
     visa_count,
     single_room_option,
     single_room_count,
-
     payment_method
   } = req.body;
 
@@ -195,6 +194,34 @@ exports.deleteBooking = (req, res) => {
       if (err2) return res.status(500).json({ error: err2 });
       res.json({ message: "Booking deleted successfully!" });
     });
+  });
+};
+
+
+// ===================================================
+//  GET ALL BOOKINGS (admin/reporting view)
+// ===================================================
+exports.getAllBookings = (_req, res) => {
+  const sql = `
+    SELECT
+      b.booking_id,
+      b.user_id,
+      b.tour_id,
+      b.total_price,
+      b.status,
+      b.booking_date,
+      b.customer_name,
+      b.email,
+      b.tour_title AS tour_name,
+      b.tour_start_date AS start_date
+    FROM bookings b
+    ORDER BY b.booking_date DESC
+  `;
+
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+
+    res.json(result);
   });
 };
 

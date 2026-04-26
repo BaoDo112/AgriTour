@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import "./LoginPopup.css";
 import { assets } from "../../assets/assets";
+import { useAuth } from "../../context-store/AuthContext";
+import { identityService } from "../../services/api";
 
-const LoginPopup = ({ setShowLogin, setUser }) => {
+const LoginPopup = ({ setShowLogin, onLoginSuccess }) => {
   const [currState, setCurrState] = useState("Login");
   const [formData, setFormData] = useState({
     full_name: "",
@@ -11,8 +14,9 @@ const LoginPopup = ({ setShowLogin, setUser }) => {
     password: "",
     phone: "",
   });
+  const { login } = useAuth();
 
-const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = identityService.apiUrl;
   
   const navigate = useNavigate();
 
@@ -56,12 +60,17 @@ const API_URL = import.meta.env.VITE_API_URL;
 
     /** Nếu là Login → lưu user */
     if (currState === "Login") {
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
+      const authenticatedUser = {
+        ...data.user,
+        token: data.token,
+      };
 
-      if (data.user.role === "partner") {
+      login(authenticatedUser);
+      onLoginSuccess?.(authenticatedUser);
+
+      if (authenticatedUser.role === "partner") {
         navigate("/partner/dashboard");
-      } else if (data.user.role === "admin") {
+      } else if (authenticatedUser.role === "admin") {
         navigate("/admin/dashboard");
       }
     }
@@ -81,12 +90,18 @@ const API_URL = import.meta.env.VITE_API_URL;
       <form className="login-popup-container" onSubmit={handleSubmit}>
         <div className="login-popup-title">
           <h2>{currState}</h2>
-          <img
-            className="cross-icon"
+          <button
+            type="button"
+            className="login-popup-icon-button"
             onClick={() => setShowLogin(false)}
-            src={assets.cross_icon}
-            alt=""
-          />
+            aria-label="Close login popup"
+          >
+            <img
+              className="cross-icon"
+              src={assets.cross_icon}
+              alt=""
+            />
+          </button>
         </div>
 
         <div className="login-popup-inputs">
@@ -136,17 +151,34 @@ const API_URL = import.meta.env.VITE_API_URL;
         {currState === "Login" ? (
           <p>
             Create a new account?{" "}
-            <span onClick={() => setCurrState("Sign Up")}>Click here</span>
+            <button
+              type="button"
+              className="login-popup-link-button"
+              onClick={() => setCurrState("Sign Up")}
+            >
+              Click here
+            </button>
           </p>
         ) : (
           <p>
             Already have an account?{" "}
-            <span onClick={() => setCurrState("Login")}>Login here</span>
+            <button
+              type="button"
+              className="login-popup-link-button"
+              onClick={() => setCurrState("Login")}
+            >
+              Login here
+            </button>
           </p>
         )}
       </form>
     </div>
   );
+};
+
+LoginPopup.propTypes = {
+  setShowLogin: PropTypes.func.isRequired,
+  onLoginSuccess: PropTypes.func,
 };
 
 export default LoginPopup;

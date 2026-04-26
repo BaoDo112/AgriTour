@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Routes, Link, Navigate, NavLink } from 'react-router-dom';
+import { Route, Routes, Navigate, NavLink } from 'react-router-dom';
 import PartnerDashboard from './PartnerDashboard';
 import PartnerTours from './PartnerTours';
 import PartnerCustomers from './PartnerCustomers';
@@ -7,6 +7,7 @@ import PartnerReports from './PartnerReports';
 import PartnerSettings from './PartnerSettings';
 import './PartnerLayout.css';
 import CreateTour from './CreateTour';
+import { useAuth } from '../../context-store/AuthContext';
 import {
   FaTachometerAlt,
   FaSuitcase,
@@ -15,8 +16,10 @@ import {
   FaCog
 } from "react-icons/fa";
 
-const PartnerLayout = ({ user }) => {
-  if (!user || user.role !== 'partner') {
+const PartnerLayout = () => {
+  const { user } = useAuth();
+
+  if (user?.role !== 'partner') {
     return <Navigate to="/" replace />;
   }
 
@@ -61,9 +64,9 @@ const PartnerLayout = ({ user }) => {
       <main className="partner-main">
         <div className="content-wrapper">
           <Routes>
-            <Route path="dashboard" element={<PartnerDashboard user={user} />} />
-            <Route path="tours" element={<PartnerTours user={user} />} />
-            <Route path="tours/create" element={<CreateTour user={user} />} />
+            <Route path="dashboard" element={<PartnerDashboard />} />
+            <Route path="tours" element={<PartnerTours />} />
+            <Route path="tours/create" element={<CreateTour />} />
             <Route path="customers" element={<PartnerCustomers />} />
             <Route path="reports" element={<PartnerReports />} />
             <Route path="settings" element={<PartnerSettings />} />

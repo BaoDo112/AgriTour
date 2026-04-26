@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import "./Chatbot.css";
 import chatbotIcon from "../../assets/chatbot-icon.png";
 import customerIcon from "../../assets/customer_icon.png";
@@ -8,11 +9,25 @@ import customerIcon from "../../assets/customer_icon.png";
 import trip1 from "../../assets/trip1.jpg";
 import river2 from "../../assets/river2.jpg";
 
-const Chatbot = () => {
-  const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hello! How can I assist you today? 😊", content: null }
-  ]);
+const createContentKey = (item) => {
+  if (item.type === "text") {
+    return `text-${item.content}`;
+  }
 
+  return `card-${item.link || item.name}`;
+};
+
+const Chatbot = () => {
+  const nextMessageId = useRef(1);
+  const createMessage = (sender, text, content = null) => ({
+    id: nextMessageId.current++,
+    sender,
+    text,
+    content,
+  });
+  const [messages, setMessages] = useState(() => [
+    createMessage("bot", "Hello! How can I assist you today? 😊")
+  ]);
   const [input, setInput] = useState("");
   const [fullscreen, setFullscreen] = useState(false);
   const [chatStage, setChatStage] = useState(0);
@@ -24,7 +39,7 @@ const Chatbot = () => {
   const addTyping = () => {
     setMessages(prev => [
       ...prev,
-      { sender: "bot", text: "Typing...", content: null }
+      createMessage("bot", "Typing...")
     ]);
   };
 
@@ -33,6 +48,7 @@ const Chatbot = () => {
       prev.map(m =>
         m.text === "Typing..."
           ? {
+            id: m.id,
             sender: "bot",
             text: newMsg.text || "",
             content: newMsg.content || null
@@ -54,7 +70,7 @@ const Chatbot = () => {
     // User message luôn có dạng unified
     setMessages(prev => [
       ...prev,
-      { sender: "user", text: userText, content: null }
+      createMessage("user", userText)
     ]);
 
     setInput("");
@@ -86,7 +102,7 @@ const Chatbot = () => {
               img: trip1,
               name: "Vinh Long Farm & Lotus Experience",
               price: "$30",
-              link: "https://agriculturaltour.onrender.com/tour-details/38"
+              link: "/tour-details/38"
             },
 
             {
@@ -94,7 +110,7 @@ const Chatbot = () => {
               img: river2,
               name: "Ha Tien Shell Beach Rowing Experience",
               price: "$30",
-              link: "https://agriculturaltour.onrender.com/tour-details/36"
+              link: "/tour-details/36"
             }
           ]
         });
@@ -124,7 +140,7 @@ const Chatbot = () => {
               img: trip1,
               name: "Vinh Long Farm & Lotus Experience",
               price: "$80",
-              link: "https://agriculturaltour.onrender.com/tour-details/38"
+              link: "/tour-details/38"
             }
           ]
         });
@@ -160,14 +176,15 @@ const Chatbot = () => {
     if (typeof data === "string") return <div>{data}</div>;
 
     if (Array.isArray(data)) {
-      return data.map((item, idx) => {
+      return data.map((item) => {
+        const itemKey = createContentKey(item);
 
         if (item.type === "text")
-          return <div key={idx}>{item.content}</div>;
+          return <div key={itemKey}>{item.content}</div>;
 
         if (item.type === "card")
           return (
-            <div className="tour-card" key={idx}>
+            <div className="tour-card" key={itemKey}>
               <img
                 src={item.img}
                 alt={item.name}
@@ -179,14 +196,9 @@ const Chatbot = () => {
 
                 <div className="tour-price chatbot-tour-price">{item.price}</div>
 
-                <a
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="tour-btn"
-                >
+                <Link to={item.link} className="tour-btn">
                   View
-                </a>
+                </Link>
               </div>
             </div>
           );
@@ -211,8 +223,8 @@ const Chatbot = () => {
 
       {/* MESSAGES */}
       <div className="chatbot-messages" ref={scrollRef}>
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`msg ${msg.sender}`}>
+        {messages.map((msg) => (
+          <div key={msg.id} className={`msg ${msg.sender}`}>
 
             {msg.sender === "bot" && (
               <img src={chatbotIcon} alt="bot" className="avatar-img" />

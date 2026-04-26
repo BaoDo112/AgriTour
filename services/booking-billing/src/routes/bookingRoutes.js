@@ -9,6 +9,7 @@ const bookingController = require("../controllers/bookingController");
  *   name: Bookings
  *   description: API for managing tour bookings
  */
+router.get("/", bookingController.getAllBookings);
 router.post("/", bookingController.createBooking);
 
 
