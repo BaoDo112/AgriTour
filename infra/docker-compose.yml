@@ -21,6 +21,28 @@ services:
     networks:
       - agritour-net
 
+  identity-partner:
+    build:
+      context: ../services/identity-partner
+      dockerfile: Dockerfile
+    container_name: agritour-identity-partner
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      DB_HOST: mysql-identity
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: devpassword
+      DB_NAME: agritour_identity
+      JWT_SECRET: dev-jwt-secret
+    depends_on:
+      mysql-identity:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - agritour-net
+
   booking-billing:
     build:
       context: ../services/booking-billing
@@ -46,6 +68,27 @@ services:
         condition: service_healthy
       tour-catalog:
         condition: service_started
+    restart: unless-stopped
+    networks:
+      - agritour-net
+
+  mysql-identity:
+    image: mysql:8.0
+    container_name: agritour-identity-mysql
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: devpassword
+      MYSQL_DATABASE: agritour_identity
+    volumes:
+      - mysql-identity-data:/var/lib/mysql
+      - ../shared/db-schemas/agritour_identity.sql:/docker-entrypoint-initdb.d/01-agritour_identity.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pdevpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     restart: unless-stopped
     networks:
       - agritour-net
@@ -95,6 +138,7 @@ services:
 volumes:
   mysql-catalog-data:
   mysql-booking-data:
+  mysql-identity-data:
 
 networks:
   agritour-net:

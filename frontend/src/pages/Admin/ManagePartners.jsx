@@ -1,166 +1,262 @@
-
-import React, { useState , useEffect, useRef} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './Admin.css';
+import { useAuth } from '../../context-store/AuthContext';
+import { identityService } from '../../services/api';
 
+const matchesApprovalFilter = (approvalFilter, approved) => {
+  if (!approvalFilter) {
+    return true;
+  }
 
-//dữ liệu giả đổ vào để test giao diện 
-const mockPartners = [
-  {
-    id: 1,
-    name: "Nguyen Van A",
-    email: "partnerA@agrifarm.vn",
-    location: "Da Lat",
-    farm: "Farm A",
-    publishedTours: 3,
-    totalBookings: 42,
-  },
-  {
-    id: 2,
-    name: "Tran Thi B",
-    email: "partnerB@agrifarm.vn",
-    location: "Ben Tre",
-    farm: "Farm B",
-    publishedTours: 5,
-    totalBookings: 68,
-  },
-  {
-    id: 3,
-    name: "Le Van C",
-    email: "partnerC@agrifarm.vn",
-    location: "Gia Lai",
-    farm: "Farm C",
-    publishedTours: 2,
-    totalBookings: 19,
-  },
-];
+  if (approvalFilter === 'approved') {
+    return Boolean(approved);
+  }
+
+  return !approved;
+};
 
 const ManagePartners = () => {
-  //dùng để filter
+  const { user } = useAuth();
+  const [partners, setPartners] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [locationFilter, setLocationFilter] = useState('');
-  const [minTours, setMinTours] = useState('');
-  const [minBookings, setMinBookings] = useState('');
-
+  const [approvalFilter, setApprovalFilter] = useState('');
   const [openId, setOpenId] = useState(null);
-  const menuRef = useRef();
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const menuRef = useRef(null);
 
-  const handleToggleMenu = (id) => {
-    setOpenId(openId === id ? null : id);
-  };
+  useEffect(() => {
+    const loadPartners = async () => {
+      if (!user?.token) {
+        setLoading(false);
+        setErrorMessage('Admin token is required to load partners.');
+        return;
+      }
 
-  const handleEdit = (id) => alert(`Edit partner ID: ${id}`);
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure to delete?")) {
-      alert(`Deleted partner ID: ${id}`);
-    }
-  };
-  const handleLockToggle = (partner) => {
-    const action = partner.locked ? "Unlock" : "Lock";
-    alert(`${action} partner ID: ${partner.id}`);
-  };
+      try {
+        setLoading(true);
+        setErrorMessage('');
 
-   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        const headers = {
+          Authorization: `Bearer ${user.token}`,
+        };
+
+        const [partnersResponse, usersResponse] = await Promise.all([
+          fetch(`${identityService.apiUrl}/partners`, { headers }),
+          fetch(`${identityService.apiUrl}/users`, { headers }),
+        ]);
+
+        const partnersData = await partnersResponse.json();
+        const usersData = await usersResponse.json();
+
+        if (!partnersResponse.ok) {
+          setErrorMessage(partnersData.error || partnersData.message || 'Failed to load partners.');
+          setPartners([]);
+          return;
+        }
+
+        if (!usersResponse.ok) {
+          setErrorMessage(usersData.error || usersData.message || 'Failed to load users.');
+          setPartners([]);
+          return;
+        }
+
+        const usersById = new Map(usersData.map((account) => [account.user_id, account]));
+
+        setPartners(
+          partnersData.map((partner) => {
+            const account = usersById.get(partner.user_id) || {};
+
+            return {
+              ...partner,
+              full_name: account.full_name || `User #${partner.user_id}`,
+              email: account.email || 'N/A',
+              phone: account.phone || 'N/A',
+            };
+          })
+        );
+      } catch (error) {
+        console.error('Load partners error:', error);
+        setErrorMessage('Failed to reach identity service.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadPartners();
+  }, [user?.token]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpenId(null);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-   
-  //dùng để filter
-  const filteredPartners = mockPartners.filter((partner) => {
-  const matchesSearch = `${partner.name} ${partner.email}`
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase());
+  const filteredPartners = useMemo(() => {
+    return partners.filter((partner) => {
+      const matchesSearch = `${partner.full_name} ${partner.email} ${partner.company_name || ''}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
-  const matchesLocation = locationFilter ? partner.location === locationFilter : true;
-  const matchesTours = minTours ? partner.publishedTours >= parseInt(minTours) : true;
-  const matchesBookings = minBookings ? partner.totalBookings >= parseInt(minBookings) : true;
+      const matchesApproval = matchesApprovalFilter(approvalFilter, partner.approved);
 
-  return matchesSearch && matchesLocation && matchesTours && matchesBookings;
-  });
+      return matchesSearch && matchesApproval;
+    });
+  }, [approvalFilter, partners, searchTerm]);
 
+  const updatePartnerApproval = async (partner_id, approved) => {
+    try {
+      const response = await fetch(`${identityService.apiUrl}/partners/${partner_id}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ approved }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || data.message || 'Failed to update partner status.');
+        return;
+      }
+
+      setPartners((currentPartners) =>
+        currentPartners.map((partner) =>
+          partner.partner_id === partner_id ? { ...partner, approved } : partner
+        )
+      );
+      setOpenId(null);
+    } catch (error) {
+      console.error('Update partner approval error:', error);
+      alert('Failed to reach identity service.');
+    }
+  };
+
+  const deletePartner = async (partner_id) => {
+    if (!globalThis.confirm('Are you sure you want to delete this partner application?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${identityService.apiUrl}/partners/${partner_id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || data.message || 'Failed to delete partner.');
+        return;
+      }
+
+      setPartners((currentPartners) => currentPartners.filter((partner) => partner.partner_id !== partner_id));
+      setOpenId(null);
+    } catch (error) {
+      console.error('Delete partner error:', error);
+      alert('Failed to reach identity service.');
+    }
+  };
 
   return (
     <div className="booking-tour-container">
       <h2>Partner Management</h2>
+
       <div className="partner-filter">
-  <input
-    type="text"
-    placeholder="Find by name,..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-  />
+        <input
+          type="text"
+          placeholder="Find by name, email, company..."
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+        />
 
-  <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)}>
-    <option value="">All location</option>
-    <option value="Đà Lạt">Da Lat</option>
-    <option value="Bến Tre">Ben Tre</option>
-    <option value="Gia Lai">Gia Lai</option>
-  </select>
+        <select value={approvalFilter} onChange={(event) => setApprovalFilter(event.target.value)}>
+          <option value="">All statuses</option>
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
 
-  <input
-    type="number"
-    placeholder="Tours published min"
-    value={minTours}
-    onChange={(e) => setMinTours(e.target.value)}
-  />
+      {loading ? <p>Loading partners...</p> : null}
+      {errorMessage ? <p>{errorMessage}</p> : null}
 
-  <input
-    type="number"
-    placeholder="Tour bookings min"
-    value={minBookings}
-    onChange={(e) => setMinBookings(e.target.value)}
-  />
-</div>
-
-      <table className="booking-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Partner Name</th>
-            <th>Email</th>
-            <th>Location</th>
-            <th>Farm</th>
-            <th>Published Tours</th>
-            <th>Total Bookings</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredPartners.map((partner) => (
-            <tr key={partner.id}>
-              <td>{partner.id}</td>
-              <td>{partner.name}</td>
-              <td>{partner.email}</td>
-              <td>{partner.location}</td>
-              <td>{partner.farm}</td>
-              <td>{partner.publishedTours}</td>
-              <td>{partner.totalBookings}</td>
-              <td>
-                <div className="action-menu" ref={menuRef}>
-                  <button className="menu-toggle" onClick={() => handleToggleMenu(partner.id)}>⋮</button>
-                  {openId === partner.id && (
-                    <div className="menu-dropdown">
-                      <p onClick={() => handleEdit(partner.id)}>Edit</p>
-                      <p onClick={() => handleDelete(partner.id)}>Delete</p>
-                      <p onClick={() => handleLockToggle(partner)}>
-                        {partner.locked ? "Unlock" : "Lock"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </td>
+      {!loading && !errorMessage ? (
+        <table className="booking-table">
+          <thead>
+            <tr>
+              <th>Partner ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Company</th>
+              <th>Address</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-
+          </thead>
+          <tbody>
+            {filteredPartners.length === 0 ? (
+              <tr>
+                <td colSpan="8">No partners found.</td>
+              </tr>
+            ) : (
+              filteredPartners.map((partner) => (
+                <tr key={partner.partner_id}>
+                  <td>{partner.partner_id}</td>
+                  <td>{partner.full_name}</td>
+                  <td>{partner.email}</td>
+                  <td>{partner.phone}</td>
+                  <td>{partner.company_name || 'N/A'}</td>
+                  <td>{partner.address || 'N/A'}</td>
+                  <td>{partner.approved ? 'Approved' : 'Pending'}</td>
+                  <td>
+                    <div className="action-menu" ref={openId === partner.partner_id ? menuRef : null}>
+                      <button
+                        type="button"
+                        className="menu-toggle"
+                        onClick={() => setOpenId(openId === partner.partner_id ? null : partner.partner_id)}
+                        aria-haspopup="menu"
+                        aria-expanded={openId === partner.partner_id}
+                      >
+                        ⋮
+                      </button>
+                      {openId === partner.partner_id && (
+                        <div className="menu-dropdown" role="menu">
+                          <button
+                            type="button"
+                            className="menu-dropdown-item"
+                            onClick={() => updatePartnerApproval(partner.partner_id, !partner.approved)}
+                          >
+                            {partner.approved ? 'Mark Pending' : 'Approve'}
+                          </button>
+                          <button
+                            type="button"
+                            className="menu-dropdown-item"
+                            onClick={() => deletePartner(partner.partner_id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      ) : null}
     </div>
-  )
-}
+  );
+};
 
-export default ManagePartners
+export default ManagePartners;

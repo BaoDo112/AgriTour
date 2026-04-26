@@ -89,8 +89,13 @@ Each service needs its own runtime variables.
 
 ### Frontend
 
-- `VITE_API_URL=http://<alb-dns>/api`
-- if hosted on S3, rebuild the frontend after setting the final ALB value
+- `VITE_TOUR_API_URL=http://<alb-dns>/api`
+- `VITE_TOUR_API_BASE=http://<alb-dns>`
+- `VITE_BOOKING_API_URL=http://<alb-dns>/api`
+- `VITE_BOOKING_API_BASE=http://<alb-dns>`
+- `VITE_IDENTITY_API_URL=http://<alb-dns>/api`
+- `VITE_IDENTITY_API_BASE=http://<alb-dns>`
+- rebuild the frontend after setting the final ALB value
 
 ## Step 2: Create The RDS Database Layer
 
@@ -99,7 +104,10 @@ Each service needs its own runtime variables.
    - `agritour_catalog`
    - `agritour_booking`
    - `agritour_identity`
-3. Run the schema for each service database.
+3. Run the schema for each service database:
+   - `shared/db-schemas/agritour_catalog.sql`
+   - `shared/db-schemas/agritour_booking.sql`
+   - `shared/db-schemas/agritour_identity.sql`
 4. Restrict security groups so ECS tasks can reach RDS.
 
 ## Step 3: Create ECR Repositories

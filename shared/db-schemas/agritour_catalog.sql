@@ -22,7 +22,7 @@ INSERT INTO `categories` (`category_id`, `category_name`) VALUES
 -- 2. Cấu trúc bảng `regions`
 CREATE TABLE `regions` (
   `region_id` int(11) NOT NULL AUTO_INCREMENT,
-  `region_name` enum('North','Central','South') NOT NULL,
+  `region_name` varchar(100) NOT NULL,
   PRIMARY KEY (`region_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

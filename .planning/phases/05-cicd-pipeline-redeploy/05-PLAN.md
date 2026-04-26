@@ -14,7 +14,7 @@ autonomous: false
 
 ## Objective
 
-Build at least one working CI/CD pipeline using AWS CodePipeline that automatically builds a Docker image, pushes to ECR, and updates the ECS service. Demonstrate one code change deployed through this pipeline.
+Build at least one working CI/CD path for one microservice. Prefer AWS CodePipeline when the learner account supports it; if CodePipeline is unavailable, use a simpler CodeDeploy-based fallback. Demonstrate one code change deployed through the chosen path.
 
 ## Must-Haves (Goal-Backward Verification)
 
@@ -28,7 +28,18 @@ Build at least one working CI/CD pipeline using AWS CodePipeline that automatica
 
 ## Tasks
 
-### Task 5.1: Setup Source Repository (CodeCommit or S3)
+### Task 5.1: Choose The Delivery Path
+
+**Decision rule:**
+- Prefer `CodePipeline + CodeBuild + ECS deploy action`.
+- If CodePipeline is not available in the learner account, switch to `CodeDeploy` for one service instead of forcing both.
+- Do not use both unless the team explicitly needs blue/green deployment and has already verified the extra AWS permissions.
+
+**Acceptance criteria:**
+- The team records which path will be demonstrated.
+- The chosen path is feasible in the actual AWS account and region.
+
+### Task 5.2: Setup Source Repository (CodeCommit or S3)
 
 **Read first:**
 - .planning/GROUP_TASK_PLAN_145337.md (Section 1 — CI/CD decisions)
@@ -66,7 +77,7 @@ Fallback approach (if CodeCommit is unavailable in Learner Lab):
 - Or: S3 bucket agritour-pipeline-source contains tour-catalog-source.zip with versioning enabled
 - Document which approach was used in infra/pipeline-setup.md
 
-### Task 5.2: Create CodeBuild Project
+### Task 5.3: Create CodeBuild Project
 
 **Read first:**
 - services/tour-catalog/Dockerfile
@@ -120,7 +131,7 @@ artifacts:
 - CodeBuild project agritour-tour-catalog-build exists in AWS Console
 - Manual build succeeds and pushes image to ECR
 
-### Task 5.3: Create CodePipeline
+### Task 5.4: Create CodePipeline
 
 **Action:**
 1. Create CodePipeline: agritour-tour-catalog-pipeline
@@ -145,7 +156,23 @@ artifacts:
 - All 3 stages show Succeeded status after manual trigger
 - ECS service is updated with new task definition revision
 
-### Task 5.4: Demonstrate Redeployment
+### Task 5.5: Fallback If CodePipeline Is Unavailable
+
+**Action:**
+1. Use `tour-catalog` as the single demo service.
+2. Keep `infra/buildspec.yml` as the Docker build contract for ECR image creation.
+3. Use CodeDeploy only for the redeployment step:
+  - application: agritour-tour-catalog
+  - deployment group tied to the ECS service/task set
+  - artifact includes the image reference or deployment spec required by the chosen CodeDeploy ECS mode
+4. Demonstrate one visible change through this simpler path.
+
+**Acceptance criteria:**
+- A single CodeDeploy path exists and is demonstrated for one service.
+- The team can explain why CodePipeline was skipped in this specific account.
+- Evidence shows the new application version running after deployment.
+
+### Task 5.6: Demonstrate Redeployment
 
 **Read first:**
 - SOA - Group Project.md (Section 4.F)
@@ -175,7 +202,7 @@ Recommended: Option B (add GET /api/tours/featured that returns top 5 approved t
 - curl http://{ALB_DNS}/api/tours/featured returns new response (or whatever change was made)
 - Screenshots saved in docs/deployment-evidence/
 
-### Task 5.5: Document Pipeline Setup
+### Task 5.7: Document Pipeline Setup
 
 **Action:**
 Create infra/pipeline-setup.md documenting:
@@ -190,6 +217,7 @@ Create infra/pipeline-setup.md documenting:
 **Acceptance criteria:**
 - infra/pipeline-setup.md exists
 - File contains `CodePipeline`
+- File contains `CodeDeploy`
 - File contains `CodeBuild`
 - File contains `rollback`
 

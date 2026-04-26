@@ -60,12 +60,17 @@ const LoginPopup = ({ setShowLogin, onLoginSuccess }) => {
 
     /** Nếu là Login → lưu user */
     if (currState === "Login") {
-      login(data.user);
-      onLoginSuccess?.(data.user);
+      const authenticatedUser = {
+        ...data.user,
+        token: data.token,
+      };
 
-      if (data.user.role === "partner") {
+      login(authenticatedUser);
+      onLoginSuccess?.(authenticatedUser);
+
+      if (authenticatedUser.role === "partner") {
         navigate("/partner/dashboard");
-      } else if (data.user.role === "admin") {
+      } else if (authenticatedUser.role === "admin") {
         navigate("/admin/dashboard");
       }
     }

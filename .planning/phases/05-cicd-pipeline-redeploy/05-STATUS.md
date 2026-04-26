@@ -9,14 +9,21 @@ priority_rule: local-docker-first-aws-ready
 
 ## Current State
 
-- No CodePipeline, CodeBuild, or deploy documentation is present in the repository.
-- No `buildspec.yml` or pipeline setup notes exist yet.
+- `infra/buildspec.yml` exists and is aligned to a single-service Docker build that pushes to ECR and emits `imagedefinitions.json`.
+- `docs/aws-codepipeline-troubleshooting.md` exists and already documents the current repository-side pipeline contract.
+- `infra/pipeline-setup.md` is now the working decision note for choosing CodePipeline or CodeDeploy in the actual learner account.
 
 ## Gap Versus Plan
 
-- No CI/CD source strategy is committed.
-- No build stage artifact exists.
-- No redeployment evidence exists.
+- The AWS account has not yet been checked to confirm whether CodePipeline is available in the target region.
+- No live AWS pipeline or deployment group evidence exists yet.
+- No redeployment screenshots or console evidence exist yet.
+
+## Recommended Direction
+
+- Prefer `CodePipeline + CodeBuild + ECS deploy` if the service is available.
+- If CodePipeline is blocked in the learner account, use `CodeDeploy` only for one microservice rather than combining both.
+- Keep the demo scope to one service, ideally `tour-catalog`, to minimize setup and risk.
 
 ## Exit Criteria For Phase 5
 

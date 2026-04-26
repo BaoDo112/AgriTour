@@ -96,14 +96,19 @@ git clone <repo-url>
 cd AgriTour
 
 # Start all services with Docker Compose
-cd infra
-docker-compose up --build
+docker compose -f infra/docker-compose.yml up -d --build
 
 # Services will be available at:
 # Tour Catalog:     http://localhost:3001
 # Booking Billing:  http://localhost:3002
 # Identity Partner: http://localhost:3003
 ```
+
+Seeded local test accounts:
+
+- `admin@example.com` / `admin123`
+- `partner@example.com` / `partner123`
+- `customer@example.com` / `customer123`
 
 ### Manual Start (Development)
 ```bash
@@ -119,6 +124,8 @@ cp .env.example .env
 npm install
 node server.js
 ```
+
+For local frontend testing, copy `frontend/.env.example` to `frontend/.env` so the app points at `localhost:3001`, `localhost:3002`, and `localhost:3003`.
 
 ### Environment Variables
 Copy `.env.example` to `.env` in each service directory and configure:

@@ -2,22 +2,27 @@
 
 ## Scope
 
-This runbook is for the current implementation only:
+This runbook is for the current 3-service local integration:
 
-- Supported now: `tour-catalog` and `booking-billing`
-- Not ready yet: `identity-partner`, JWT login, RBAC-protected flows
+- `tour-catalog`
+- `booking-billing`
+- `identity-partner`
+- frontend pointing to the 3 local service URLs from `frontend/.env.example`
 
 ## Why This Flow
 
-- It validates the 2 services that already exist.
+- It validates the full local service split before AWS work.
+- It proves login/token issuance from Service C.
 - It proves the current service-to-service path from Booking Billing to Tour Catalog.
-- It does not depend on unfinished auth work.
+- It gives seeded accounts for admin, partner, and customer smoke tests.
 
 ## Prerequisites
 
 - Docker Desktop is running.
-- Ports `3001`, `3002`, `3307`, and `3308` are free.
+- Ports `3001`, `3002`, `3003`, `3307`, `3308`, and `3309` are free.
 - Run commands from the repository root: `D:\2026\SOA\AgriTour`
+
+If `docker compose` fails with `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine`, start Docker Desktop first and wait until the engine is ready.
 
 ## Start The Stack
 
@@ -30,12 +35,51 @@ docker compose -f infra/docker-compose.yml up -d --build --force-recreate
 ```powershell
 Invoke-RestMethod http://localhost:3001/health
 Invoke-RestMethod http://localhost:3002/health
+Invoke-RestMethod http://localhost:3003/health
 ```
 
 Expected result:
 
 - Tour Catalog returns `status = healthy`
 - Booking Billing returns `status = healthy`
+- Identity Partner returns `status = UP`
+
+## Seeded Identity Accounts
+
+The local identity schema seeds three users:
+
+- `admin@example.com` / `admin123`
+- `partner@example.com` / `partner123`
+- `customer@example.com` / `customer123`
+
+## Login And Token Smoke Test
+
+```powershell
+$loginBody = @{
+  email = "admin@example.com"
+  password = "admin123"
+} | ConvertTo-Json
+
+$loginResponse = Invoke-RestMethod -Method Post -Uri http://localhost:3003/api/auth/login -ContentType "application/json" -Body $loginBody
+$loginResponse
+```
+
+Expected result:
+
+- Response contains `token`
+- Response contains `user.role = admin`
+
+## RBAC Smoke Test
+
+```powershell
+$headers = @{ Authorization = "Bearer $($loginResponse.token)" }
+Invoke-RestMethod -Headers $headers -Uri http://localhost:3003/api/users
+```
+
+Expected result:
+
+- Admin token can read `/api/users`
+- Requests without a token return `401`
 
 ## Validate Tour Catalog Data
 
@@ -147,10 +191,9 @@ Expected result:
 
 ## What This Flow Does Not Prove Yet
 
-- JWT issuance
-- RBAC enforcement
-- Partner approval flow
 - AWS deployment behavior
+
+It also does not replace browser-level frontend regression testing.
 
 ## Troubleshooting
 

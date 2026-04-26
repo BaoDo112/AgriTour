@@ -79,7 +79,9 @@
   font-weight: 500;
   cursor: pointer;
   padding: 0;
-  font: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 .login-popup p span{
   color: rgb(15, 89, 15);

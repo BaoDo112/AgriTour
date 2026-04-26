@@ -35,13 +35,15 @@ const TOUR_CATALOG_MOCK_DATA = {
 
 const normalizeTour = (tour) => {
 	if (!tour) return null;
+	const hasPrice = tour.price !== null && tour.price !== undefined;
+
 	return {
 		tour_id: Number(tour.tour_id),
 		tour_name: tour.tour_name,
 		image_url: tour.image_url || null,
 		start_date: tour.start_date || null,
 		end_date: tour.end_date || null,
-		price: tour.price != null ? Number(tour.price) : null,
+		price: hasPrice ? Number(tour.price) : null,
 	};
 };
 
