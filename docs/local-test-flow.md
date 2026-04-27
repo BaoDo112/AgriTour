@@ -20,7 +20,7 @@ This runbook is for the current 3-service local integration:
 
 - Docker Desktop is running.
 - Ports `3001`, `3002`, `3003`, `3307`, `3308`, and `3309` are free.
-- Run commands from the repository root: `D:\2026\SOA\AgriTour`
+- Run commands from the root of your local `AgriTour` checkout.
 
 If `docker compose` fails with `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine`, start Docker Desktop first and wait until the engine is ready.
 

@@ -83,8 +83,8 @@ Required screenshots:
 6. RDS instance details
 7. CloudWatch log groups with log entries
 8. CloudWatch alarm configuration
-9. CodePipeline with all stages Succeeded
-10. CodeBuild build log showing Docker build
+9. CodeDeploy deployment with `Succeeded` status
+10. Local Docker or Cloud9 build output showing the pushed image tag
 11. S3 bucket with frontend (if deployed)
 12. IAM role configurations
 
@@ -96,7 +96,7 @@ Label each screenshot with descriptive filename: ecr-repositories.png, ecs-servi
 
 **Acceptance criteria:**
 - docs/deployment-evidence/ directory contains at least 12 screenshots
-- Screenshots cover ECR, ECS, ALB, RDS, CloudWatch, CodePipeline
+- Screenshots cover ECR, ECS, ALB, RDS, CloudWatch, CodeDeploy, and S3
 - Before/after directory structure screenshots included
 
 ### Task 6.4: Write Technical Report
@@ -106,7 +106,7 @@ Label each screenshot with descriptive filename: ecr-repositories.png, ecs-servi
 - docs/saga-workflow.md
 - docs/architecture-diagram.png
 - docs/team-conventions.md
-- infra/pipeline-setup.md
+- infra/deployment-setup.md
 
 **Action:**
 Create docs/technical-report.md (or .docx) with these sections (20-30 pages total):
@@ -148,15 +148,15 @@ Create docs/technical-report.md (or .docx) with these sections (20-30 pages tota
    - How it is handled: Booking service returns error, booking not created
    - Recovery: Service health check, ECS auto-restart
 
-6. CI/CD Pipeline (2-3 pages)
-   - Pipeline architecture (Source, Build, Deploy)
-   - CodeBuild buildspec explanation
-   - Redeployment demonstration
-   - Evidence of pipeline execution
+6. Redeployment Flow (2-3 pages)
+   - GitHub as the source of truth
+   - S3 deployment artifact strategy
+   - CodeDeploy redeployment demonstration
+   - Evidence of redeployment execution
 
 7. Deployment and Update Process (1-2 pages)
    - Step-by-step deployment process
-   - How updates are deployed (pipeline or manual ECS update)
+   - How updates are deployed (manual image push plus CodeDeploy for the demo service)
    - Rollback strategy
 
 8. Challenges and Learning (2-3 pages)
@@ -189,7 +189,7 @@ Create presentation slides (PowerPoint, Google Slides, or Markdown) covering:
 - Slides 7-8: Saga workflow with sequence diagram
 - Slide 9: Failure scenario (optional)
 - Slides 10-12: AWS deployment (ECR, ECS, ALB, RDS screenshots)
-- Slide 13: CI/CD pipeline demonstration
+- Slide 13: CodeDeploy redeployment demonstration
 - Slide 14: Demo plan (what will be shown live)
 - Slide 15: Challenges and learnings
 
@@ -217,11 +217,11 @@ Create docs/demo-script.md with step-by-step demo plan:
    - Browse tours
    - Create booking (Saga: Booking calls Tour Catalog)
    - Make payment (status update)
-4. Show CI/CD pipeline execution (2 min):
+4. Show redeployment execution (2 min):
    - Make one code change
-   - Pipeline triggers
+   - Upload or select the prepared deployment artifact
    - New image pushed to ECR
-   - ECS service updated
+   - CodeDeploy updates the ECS service
 5. Show CloudWatch logs (1 min)
 6. Show ECS console — services running on Fargate (1 min)
 
