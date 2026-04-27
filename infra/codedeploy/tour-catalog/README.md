@@ -9,7 +9,7 @@ It is designed for a manual learner-lab flow:
 1. build and push a new `tour-catalog` image to ECR
 2. register a new ECS task definition revision
 3. update the AppSpec file to point to that new task definition revision
-4. zip the deployment bundle and upload it to S3
+4. upload the AppSpec file itself to S3 as the deployment revision
 5. trigger CodeDeploy
 
 ## Files
@@ -47,13 +47,17 @@ Open `appspec.template.yaml` and replace these placeholders:
 
 If your CodeDeploy deployment group uses a different container name or port, update them too.
 
-### Step 3: Build the deployment bundle
+### Step 3: Prepare the deployment revision
 
-Create a deployment bundle zip containing the filled AppSpec file.
+For the verified ECS CodeDeploy path in this repository, upload the filled `appspec.yaml` directly to S3 and use that versioned object as the deployment revision.
 
-If your team wants to keep both files together for traceability, include the filled task definition JSON in the same zip as supporting evidence.
+Keep the filled task definition JSON alongside it for traceability, but do not assume a zip revision will be accepted for ECS in this learner-lab setup.
 
-Recommended zip content:
+Verified failure mode when using the wrong artifact type:
+
+- `INVALID_REVISION: The deployment specifies that the revision is a null file, but the revision provided is a zip file.`
+
+Recommended tracked files:
 
 - `appspec.yaml`
 - `taskdef.json`
@@ -61,13 +65,13 @@ Recommended zip content:
 
 ### Step 4: Upload and deploy
 
-1. upload the zip to the versioned S3 deployment bucket
+1. upload `appspec.yaml` to the versioned S3 deployment bucket
 2. note the object key and version id
-3. create the CodeDeploy deployment from that S3 revision
+3. create the CodeDeploy deployment from that S3 revision using bundle type `YAML`
 
 ## Suggested Naming Convention
 
-- zip name: `tour-catalog-deploy-YYYYMMDD-HHMM.zip`
+- AppSpec object key: `tour-catalog/appspec-YYYYMMDD-HHMM.yaml`
 - task definition family: `agritour-tour-catalog`
 - container name: `tour-catalog`
 

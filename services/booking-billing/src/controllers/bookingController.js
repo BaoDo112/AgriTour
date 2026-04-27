@@ -1,6 +1,18 @@
 const db = require("../config/db");
 const { resolveTourSnapshot } = require("../integrations/tourCatalogAdapter");
 
+const toSqlScalar = (value) => {
+  if (Array.isArray(value)) {
+    if (value.length === 0) return null;
+    return toSqlScalar(value.at(-1));
+  }
+
+  if (value == null) return null;
+  if (typeof value === "object") return null;
+
+  return value;
+};
+
 // ===================================================
 //  CREATE BOOKING (Customer creates booking)
 // ===================================================
@@ -37,11 +49,14 @@ exports.createBooking = async (req, res) => {
   // --- Resolve Tour Snapshot (Saga / Cross-Service Integration) ---
   const { tour: tourSnapshot, source } = await resolveTourSnapshot(tour_id, req.body);
   
-  const tourTitle = tourSnapshot ? tourSnapshot.tour_name : null;
-  const tourImageUrl = tourSnapshot ? tourSnapshot.image_url : null;
-  let tourStartDate = tourSnapshot ? tourSnapshot.start_date : null;
-  let tourEndDate = tourSnapshot ? tourSnapshot.end_date : null;
-  const tourUnitPrice = tourSnapshot ? tourSnapshot.price : null;
+  const tourTitle = toSqlScalar(tourSnapshot ? tourSnapshot.tour_name : null);
+  const tourImageUrl = toSqlScalar(tourSnapshot ? tourSnapshot.image_url : null);
+  let tourStartDate = toSqlScalar(tourSnapshot ? tourSnapshot.start_date : null);
+  let tourEndDate = toSqlScalar(tourSnapshot ? tourSnapshot.end_date : null);
+  const normalizedTourPrice = toSqlScalar(tourSnapshot ? tourSnapshot.price : null);
+  const tourUnitPrice = normalizedTourPrice == null
+    ? null
+    : Number(normalizedTourPrice);
 
   // MySQL DATE format fix if timestamps are provided
   if (tourStartDate && typeof tourStartDate === 'string') {
@@ -49,6 +64,10 @@ exports.createBooking = async (req, res) => {
   }
   if (tourEndDate && typeof tourEndDate === 'string') {
     tourEndDate = tourEndDate.split('T')[0];
+  }
+
+  if (tourUnitPrice != null && Number.isNaN(tourUnitPrice)) {
+    return res.status(502).json({ message: "Invalid tour price returned by catalog service" });
   }
 
   const sql = `
@@ -86,7 +105,7 @@ exports.createBooking = async (req, res) => {
     visa_option, visa_count,
     single_room_option, single_room_count,
     payment_method
-  ];
+  ].map((value) => toSqlScalar(value));
 
   db.query(sql, params, (err, result) => {
     if (err) {

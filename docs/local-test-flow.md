@@ -97,6 +97,11 @@ Expected result:
 - `/api/tours` returns approved tours
 - `/api/tours/9` returns seeded tour details including `price`
 
+PowerShell note:
+
+- if you script a dynamic booking smoke flow, assign the tours response to a variable first, for example `$tours = @(Invoke-RestMethod http://localhost:3001/api/tours)` and then read `$tours[0].tour_id`
+- avoid reading `.tour_id` directly from the raw command output because PowerShell can flatten that property into an array of all tour IDs
+
 ## Create A Booking Through Service B
 
 ```powershell
@@ -104,6 +109,7 @@ $bookingBody = @{
   user_id = 101
   tour_id = 9
   num_people = 2
+  total_price = 100
   customer_name = "Local Tester"
   email = "tester@example.com"
   phone = "0900000000"
@@ -118,6 +124,7 @@ Expected result:
 
 - Response contains `booking_id`
 - Response contains `tour_source = service-a`
+- The request must include `total_price`
 
 ## Read The Booking Back
 

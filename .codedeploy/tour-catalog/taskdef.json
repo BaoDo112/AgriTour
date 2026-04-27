@@ -1,0 +1,6 @@
+{
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:721792963856:task-definition/agritour-tour-catalog:3",
+  "image": "721792963856.dkr.ecr.us-east-1.amazonaws.com/agritour-tour-catalog:codedeploy-v1-1777281813",
+  "release": "tour-catalog-codedeploy-v1",
+  "createdAtUtc": "2026-04-27T09:26:43.5127265Z"
+}
