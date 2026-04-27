@@ -6,6 +6,17 @@ Use this script for the 15 minute presentation block before Q and A.
 
 The flow is optimized to show system understanding, AWS deployment, and one working redeployment without wasting time.
 
+## Pre-Open Tabs
+
+Open these exact links before the presentation starts:
+
+- Frontend: `http://agritour-frontend-721792963856-20260427.s3-website-us-east-1.amazonaws.com`
+- ALB base: `http://agritour-alb-748152609.us-east-1.elb.amazonaws.com`
+- Demo endpoint: `http://agritour-alb-748152609.us-east-1.elb.amazonaws.com/api/tours/featured`
+- CodeDeploy application: `agritour`
+- CodeDeploy deployment group: `agritour-tour-catalog-dg`
+- Successful reference deployment: `d-440L6Z25J`
+
 ## Minute 0 to 1: Opening
 
 Say:
@@ -84,11 +95,20 @@ Say:
 
 Demo:
 
-1. show the old or current behavior
-2. show the new image tag or prepared deployment bundle
-3. trigger or show the running CodeDeploy deployment
-4. show deployment success
-5. refresh the ALB endpoint and show the new behavior live
+1. open `http://agritour-alb-748152609.us-east-1.elb.amazonaws.com/api/tours/featured`
+2. show that the response includes `release = tour-catalog-codedeploy-v1`
+3. open CodeDeploy application `agritour`
+4. open deployment group `agritour-tour-catalog-dg`
+5. show deployment `d-440L6Z25J` in `Succeeded`
+6. connect that deployment to the visible endpoint change through the ALB
+
+If you are re-running a fresh redeploy live instead of replaying the completed one:
+
+1. show the current endpoint behavior first
+2. show the new ECR image tag and uploaded AppSpec revision
+3. trigger the new CodeDeploy deployment
+4. show deployment progress and then `Succeeded`
+5. refresh the same ALB endpoint and show the updated behavior
 
 ## Minute 11.5 to 13: Failure Handling Or Risk Control
 
@@ -123,3 +143,4 @@ Say:
 - keep all IDs and ARNs in a shared note
 - have one operator drive and one person narrate
 - keep rollback artifact ready before the live redeployment step
+- keep the frontend tab and the featured endpoint tab open side by side so you can pivot quickly between user-facing proof and AWS console proof

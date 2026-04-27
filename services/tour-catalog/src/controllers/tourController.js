@@ -259,4 +259,24 @@ exports.getAllTours = (req, res) => {
   });
 };
 
+exports.getFeaturedTours = (req, res) => {
+  const sql = `
+    SELECT *
+    FROM tours
+    WHERE status = 'approved'
+    ORDER BY start_date ASC, tour_id DESC
+    LIMIT 3
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) return res.status(500).json({ error: err });
+
+    res.json({
+      release: "tour-catalog-codedeploy-v1",
+      count: rows.length,
+      tours: rows,
+    });
+  });
+};
+
 

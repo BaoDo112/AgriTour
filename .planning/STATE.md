@@ -1,27 +1,27 @@
 ---
 milestone: v1.0
 milestone_name: milestone
-current_phase: 5
-current_phase_name: Deployment and Redeployment Demo
+current_phase: 6
+current_phase_name: Observability, Report, and Demo Preparation
 current_plan: 1
 total_phases: 6
 total_plans_in_phase: 1
 status: in-progress
-progress_percent: 45
+progress_percent: 85
 last_activity: 2026-04-27
 ---
 
 # State
 
-**Current Phase:** 5
-**Current Phase Name:** Deployment and Redeployment Demo
+**Current Phase:** 6
+**Current Phase Name:** Observability, Report, and Demo Preparation
 **Total Phases:** 6
 **Current Plan:** 1
 **Total Plans in Phase:** 1
 **Status:** In progress
-**Progress:** 45%
+**Progress:** 85%
 **Last Activity:** 2026-04-27
-**Last Activity Description:** Verified learner-lab credentials locally, built and pushed all 3 backend images to ECR, created the RDS MySQL instance, opened port `3306` for the current laptop IP, imported the `agritour_catalog`, `agritour_booking`, and `agritour_identity` schemas successfully, and registered working ECS task definitions for `agritour-tour-catalog:2`, `agritour-booking-billing:1`, and `agritour-identity-partner:1` using `LabRole` for both task and execution roles. The current blocker is now the live AWS console pass for ECS services, target groups, ALB routing, and then the CodeDeploy demo wiring.
+**Last Activity Description:** Completed the live AWS deployment path in learner lab: ALB routing is healthy for all 3 services, the frontend is deployed on S3, CloudWatch log groups are available, CodeDeploy deployment `d-440L6Z25J` promoted `agritour-tour-catalog:3`, `/api/tours/featured` now returns `release = tour-catalog-codedeploy-v1`, and the final ALB smoke flow passed `auth -> tours -> booking -> payment -> booking read-back` with `agritour-booking-billing:4` and `agritour-identity-partner:3`. The earlier booking SQL failure was traced to a malformed PowerShell smoke command that sent `tour_id` as an array; `services/booking-billing/src/controllers/bookingController.js` now defensively normalizes SQL params to scalars before persistence.
 **Paused At:** None
 
 ## Decisions Made
@@ -32,10 +32,9 @@ last_activity: 2026-04-27
 
 ## Active Blockers
 
-- The learner lab is region-restricted to `us-east-1` and `us-west-2`; all deployment assets and screenshots must stay in one of those regions.
-- The standard ECS service path still needs one live validation pass using the already-registered task definitions, target groups, and ALB listener rules.
-- The team still needs one real AWS console pass to prove the CodeDeploy ECS flow works with the selected cluster, service, ALB listener, and target groups.
-- Earlier phases have implementation progress in code, but they do not yet have matching GSD summary and verification artifacts.
+- The learner lab is region-restricted to `us-east-1` and `us-west-2`; all remaining evidence capture and demo assets must stay in one of those regions.
+- Phase 6 deliverables are still open: the final report, slide deck, and curated screenshot set are not yet finished in the repository.
+- Validation is still smoke-based rather than automated; there is no committed regression suite covering the deployed flows.
 
 ## Performance Metrics
 
@@ -45,6 +44,6 @@ last_activity: 2026-04-27
 
 ## Session Continuity
 
-- Local validation passed for health checks, auth/RBAC, partner approval, tour review, booking, payment, invoice, and frontend build/preview.
-- The learner-lab-safe deployment checklist and deploy-day runbook now exist for all 3 services and the frontend using GitHub, ECR, ECS, S3, and one CodeDeploy redeployment demo.
-- The next concrete step is to create ECS services from `agritour-tour-catalog:2`, `agritour-booking-billing:1`, and `agritour-identity-partner:1`, wire target groups and ALB routing, then capture evidence for ECS, ALB, CloudWatch, S3, and CodeDeploy.
+- Local Docker validation passed earlier for health checks, auth/RBAC, partner approval, tour review, booking, payment, invoice, and frontend build/preview.
+- Live learner-lab validation now also passed through the shared ALB with the currently verified revisions `agritour-tour-catalog:3`, `agritour-booking-billing:4`, and `agritour-identity-partner:3`.
+- The next concrete step is Phase 6 packaging: capture final evidence from ECS, ALB, CloudWatch, S3, and CodeDeploy, then fold those artifacts into the report, slides, and demo narrative.

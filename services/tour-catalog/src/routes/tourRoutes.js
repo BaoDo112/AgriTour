@@ -249,6 +249,18 @@ router.delete("/delete/:tour_id", tourController.deleteTour);
  */
 router.get("/", tourController.getAllTours);
 
+/**
+ * @swagger
+ * /api/tours/featured:
+ *   get:
+ *     summary: Get featured approved tours for deployment validation
+ *     tags: [Tours]
+ *     responses:
+ *       200:
+ *         description: Featured approved tours with release metadata
+ */
+router.get("/featured", tourController.getFeaturedTours);
+
 
 /**
  * @swagger

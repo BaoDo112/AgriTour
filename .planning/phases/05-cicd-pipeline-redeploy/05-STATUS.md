@@ -1,6 +1,6 @@
 ---
 phase: 5
-status: in-progress
+status: completed
 updated: 2026-04-27
 priority_rule: local-docker-first-aws-ready
 ---
@@ -9,38 +9,27 @@ priority_rule: local-docker-first-aws-ready
 
 ## Current State
 
-- `infra/deployment-setup.md` is the working decision note for the learner-lab deployment path.
-- `docs/aws-codedeploy-guide.md` is the runbook for the AWS-side redeploy demo.
-- `docs/aws-console-checklist.md` is now the primary operator guide and includes `aws configure`, ECR push, and concrete RDS-create-screen guidance.
-- One learner-lab ECS console pass has already created an Express service and related resources.
-- One Cloud9 provisioning attempt failed with `Missing credentials in config` and `No subnets found`.
-- Local AWS CLI credentials were verified with `aws sts get-caller-identity` on the personal machine.
-- Docker was verified locally and all 3 backend images were built and pushed to ECR with `latest` tags.
-- The RDS MySQL instance is now available, local laptop access on `3306` was opened through the attached security group, and the 3 service schemas were imported successfully.
-- ECS task definitions now exist for all 3 services: `agritour-tour-catalog:2`, `agritour-booking-billing:1`, and `agritour-identity-partner:1`, all using `LabRole` for both task and execution roles.
+- `infra/deployment-setup.md` remains the decision note for the learner-lab deployment path.
+- `docs/aws-console-checklist.md` is the primary operator guide for the validated AWS path.
+- The shared ALB, target groups, ECS services, S3 frontend hosting, and CloudWatch log groups are all live in `us-east-1`.
+- The currently validated live revisions are `agritour-tour-catalog:3`, `agritour-booking-billing:4`, and `agritour-identity-partner:3`.
+- CodeDeploy deployment `d-440L6Z25J` succeeded for `tour-catalog`, and `/api/tours/featured` returns `release = tour-catalog-codedeploy-v1` through the ALB.
+- The final ALB smoke flow passed for auth, tours, booking creation, payment, and booking read-back.
 
 ## Gap Versus Plan
 
-- The previous wrong-image-source blocker has been resolved by pushing the real images to ECR and recording the full ECR URIs for ECS.
-- Cloud9 is not currently a reliable build path in this learner-lab session.
-- The team still needs one real AWS console pass to create ECS services from the registered task definitions and verify the standard ECS service path with the correct target groups and ALB wiring.
-- The durable source and artifact split must be frozen: GitHub for source, S3 for deployable artifacts.
-- No live AWS deployment-group evidence exists yet.
-- No redeployment screenshots or console evidence exist yet.
+- No functional gap remains against the Phase 5 exit criteria.
+- The remaining work has moved to Phase 6: evidence curation, report writing, and presentation packaging.
+- Cloud9 remains unnecessary for the chosen deployment path; local Docker plus AWS CLI and Console are the working baseline.
 
 ## Recommended Direction
 
-- Prefer `CodeDeploy` for one microservice because it is explicitly supported in the learner lab.
-- Keep GitHub as the source of truth outside the learner-lab budget boundary.
-- Use S3 for frontend hosting and versioned deployment artifacts.
-- Build and push backend images from local Docker before creating or updating ECS services unless Cloud9 becomes healthy again.
-- Use the pushed ECR image URIs exactly as printed by `scripts/push-ecr-images.ps1`; do not type image names by hand in ECS.
-- Keep the RDS security group rule for the laptop only while importing or debugging locally; later add the ECS service security group as the application path.
-- Prefer standard ECS task definitions and ECS services for the final architecture instead of relying on Express Mode.
-- Keep the demo scope to one service, ideally `tour-catalog`, to minimize setup and risk.
+- Freeze the validated live architecture unless a presentation-critical issue appears.
+- Keep GitHub as the source of truth, S3 for static/frontend and deployment artifacts, ECR for images, ECS for runtime, and CodeDeploy only for the single redeploy demo.
+- Use the documented live revisions as the rollback baseline while Phase 6 assets are assembled.
 
 ## Exit Criteria For Phase 5
 
-- At least one service has a working AWS redeployment path.
-- One visible change is redeployed through that path.
-- Deployment steps, rollback, and evidence are documented.
+- Completed: at least one service has a working AWS redeployment path.
+- Completed: one visible change was redeployed through that path.
+- Completed: deployment steps, rollback notes, and evidence locations are documented.

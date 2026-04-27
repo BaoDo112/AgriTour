@@ -25,6 +25,20 @@ Recommended demo service:
 
 - `tour-catalog`
 
+## Current Live Demo Values
+
+These are the validated live values for the current learner-lab session on 2026-04-27:
+
+- Frontend URL: `http://agritour-frontend-721792963856-20260427.s3-website-us-east-1.amazonaws.com`
+- Shared ALB URL: `http://agritour-alb-748152609.us-east-1.elb.amazonaws.com`
+- Demo endpoint: `http://agritour-alb-748152609.us-east-1.elb.amazonaws.com/api/tours/featured`
+- CodeDeploy application: `agritour`
+- CodeDeploy deployment group: `agritour-tour-catalog-dg`
+- Last successful deployment: `d-440L6Z25J`
+- Live redeploy proof: `/api/tours/featured` returns `release = tour-catalog-codedeploy-v1`
+
+If you only need to test the deployed system first, open the frontend URL and confirm it can load data through the shared ALB URL above.
+
 ## Artifacts To Prepare
 
 ### Backend images
@@ -43,7 +57,15 @@ Build the Vite frontend and upload `dist/` to the S3 hosting bucket.
 
 Prepare one versioned S3 object containing the deployment bundle for the demo service.
 
-The bundle should contain the files required by your ECS CodeDeploy flow, such as:
+For the verified ECS path in this learner-lab setup, use a direct `appspec.yaml` or `appspec.json` object in S3 as the CodeDeploy revision.
+
+Do not assume a `.zip` revision will work for ECS here. The verified failure mode for the wrong artifact type is:
+
+- `INVALID_REVISION: The deployment specifies that the revision is a null file, but the revision provided is a zip file.`
+
+Keep the supporting task-definition JSON next to the AppSpec in your repo or evidence folder, but create the deployment from the versioned AppSpec object itself.
+
+The supporting files for your ECS CodeDeploy flow can include:
 
 - deployment specification
 - task definition reference
@@ -63,7 +85,7 @@ Ready-to-fill templates now exist in:
 4. Confirm the target ECS service is healthy before testing CodeDeploy.
 5. Create the CodeDeploy application for the chosen service.
 6. Create the deployment group linked to the correct ECS service and ALB target groups.
-7. Upload the deployment bundle to a versioned S3 bucket.
+7. Upload the AppSpec YAML or JSON revision to a versioned S3 bucket.
 8. Start the deployment and observe it until it reaches `Succeeded`.
 
 Learner-lab blocker rule:
@@ -79,10 +101,29 @@ For screen-by-screen console steps, use `docs/aws-console-checklist.md`.
 1. Show the current live endpoint through ALB.
 2. Make one visible code change in the selected service.
 3. Build and push a new image tag to ECR.
-4. Upload the updated deployment bundle to S3.
+4. Upload the updated AppSpec revision to S3.
 5. Trigger CodeDeploy.
 6. Show deployment progress.
 7. Re-open the endpoint through ALB and verify the new behavior.
+
+## Fast Demo Path For This Session
+
+If you need a clean presentation flow right now, use this sequence:
+
+1. Open the frontend at `http://agritour-frontend-721792963856-20260427.s3-website-us-east-1.amazonaws.com`.
+2. Open the ALB demo endpoint at `http://agritour-alb-748152609.us-east-1.elb.amazonaws.com/api/tours/featured`.
+3. In AWS CodeDeploy, open application `agritour` and deployment group `agritour-tour-catalog-dg`.
+4. Show deployment `d-440L6Z25J` as the completed reference deployment.
+5. Refresh the featured endpoint and point out `release = tour-catalog-codedeploy-v1` as the visible post-redeploy change.
+
+If you want to rerun the same style of demo with a new release:
+
+1. make a visible `tour-catalog` change
+2. build and push a new `agritour-tour-catalog` image tag to ECR
+3. upload the updated `appspec.yaml` revision to S3
+4. create a new deployment in CodeDeploy application `agritour`
+5. watch the deployment reach `Succeeded`
+6. refresh `/api/tours/featured` through the ALB
 
 ## Evidence To Capture
 
