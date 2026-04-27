@@ -23,7 +23,7 @@ Produce the complete architecture diagram, finalize 3 service boundaries with Op
 
 ## Must-Haves (Goal-Backward Verification)
 
-- Architecture diagram showing: Client, ALB, 3 ECS Fargate tasks, RDS, ECR, CloudWatch, CodePipeline
+- Architecture diagram showing: Client, ALB, 3 ECS Fargate tasks, RDS, ECR, CloudWatch, CodeDeploy, and S3 frontend hosting
 - OpenAPI contract spec for each of the 3 services
 - SQL schema files for 3 logical databases (agritour_catalog, agritour_booking, agritour_identity)
 - Data ownership matrix documenting which service owns which tables
@@ -52,7 +52,7 @@ Create an architecture diagram (draw.io, Lucidchart, or similar) showing:
 - Amazon ECR (3 repositories feeding images to ECS)
 - Amazon RDS MySQL (1 instance, 3 logical databases)
 - CloudWatch (log groups per service)
-- CodePipeline (at least 1 pipeline: Source to Build to Deploy)
+- CodeDeploy redeployment path for one selected service
 - IAM roles connecting services to AWS resources
 - Optional: SQS/SNS for async booking notifications
 
@@ -60,7 +60,7 @@ Save as docs/architecture-diagram.png and editable source file.
 
 **Acceptance criteria:**
 - docs/architecture-diagram.png file exists
-- Diagram contains labels: ALB, ECS Fargate, ECR, RDS, CloudWatch, CodePipeline
+- Diagram contains labels: ALB, ECS Fargate, ECR, RDS, CloudWatch, CodeDeploy, S3
 - Diagram shows 3 distinct service boxes with their API prefixes
 - Diagram shows path-based routing arrows from ALB to each service
 - Diagram shows RDS with 3 database labels

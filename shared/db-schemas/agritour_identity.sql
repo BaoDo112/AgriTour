@@ -1,3 +1,8 @@
+CREATE DATABASE IF NOT EXISTS agritour_identity
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_general_ci;
+USE agritour_identity;
+
 CREATE TABLE IF NOT EXISTS users (
   user_id INT NOT NULL AUTO_INCREMENT,
   full_name VARCHAR(100) NOT NULL,

@@ -1,231 +1,204 @@
 ---
 phase: 5
-name: CI/CD Pipeline and Redeployment Demo
+name: Deployment and Redeployment Demo
 wave: 4
 depends_on: [3]
 requirements: [REQ-CICD-01, REQ-REDEPLOY-01, REQ-IAM-01]
 files_modified:
-  - infra/buildspec.yml
-  - infra/pipeline-setup.md
+   - infra/deployment-setup.md
+   - docs/aws-codedeploy-guide.md
+   - docs/aws-console-checklist.md
+   - infra/codedeploy/tour-catalog/taskdef.template.json
+   - infra/codedeploy/tour-catalog/appspec.template.yaml
+   - infra/codedeploy/tour-catalog/README.md
+   - docs/demo-script-15min.md
+   - docs/appendix-screenshot-checklist.md
 autonomous: false
 ---
 
-# Phase 5: CI/CD Pipeline and Redeployment Demo
+# Phase 5: Deployment and Redeployment Demo
 
 ## Objective
 
-Build at least one working CI/CD path for one microservice. Prefer AWS CodePipeline when the learner account supports it; if CodePipeline is unavailable, use a simpler CodeDeploy-based fallback. Demonstrate one code change deployed through the chosen path.
+Build at least one working AWS redeployment path for one microservice within the learner lab restrictions. Keep GitHub as the source of truth, use S3 for deployable artifacts, and use CodeDeploy as the only redeployment mechanism in the active plan. Demonstrate one code change redeployed through that path.
+
+Brief alignment:
+- Section 4.E requires one basic AWS CI/CD mechanism for at least one microservice.
+- Section 5 allows `CodePipeline` and or `CodeDeploy`, so a working `CodeDeploy` path still satisfies the requirement.
+- To maximize score potential, the team must pair that redeploy path with strong evidence for architecture, containerization, ECS or ALB routing, CloudWatch, and the final report or demo package.
 
 ## Must-Haves (Goal-Backward Verification)
 
-- CodePipeline created for at least 1 service
-- Source stage connected (CodeCommit or S3)
-- Build stage using CodeBuild to build Docker image and push to ECR
-- Deploy stage updating ECS service with new image
-- One code change pushed through pipeline end-to-end
-- Evidence screenshots of pipeline execution
-- Pipeline IAM roles with least-privilege
+- One supported AWS redeployment mechanism exists for at least 1 service
+- Source is preserved outside the learner lab in GitHub and deployable artifacts are versioned in S3
+- Docker image is built from an allowed development environment and pushed to ECR
+- Deploy stage updates the ECS service with the new image
+- One visible code change is redeployed end-to-end
+- Evidence screenshots of the deployment execution exist
+- IAM and region choices respect learner-lab restrictions
 
 ## Tasks
 
-### Task 5.1: Choose The Delivery Path
+### Task 5.1: Confirm Learner Lab Constraints
+
+**Action:**
+1. Keep all work in `us-east-1` or `us-west-2`.
+2. Use the pre-created learner-lab roles where required:
+   - `LabRole`
+   - `LabInstanceProfile`
+3. Satisfy the CI/CD requirement with `CodeDeploy` for one service and do not depend on unsupported build-pipeline services.
+4. Keep the demo scope to one service, ideally `tour-catalog`.
+
+**Acceptance criteria:**
+- The team has one chosen region.
+- The team can explain why `CodeDeploy` is the selected CI/CD mechanism under the project brief.
+- The team can explain why the Phase 5 design avoids unsupported learner-lab services.
+
+### Task 5.2: Choose The Delivery Path
 
 **Decision rule:**
-- Prefer `CodePipeline + CodeBuild + ECS deploy action`.
-- If CodePipeline is not available in the learner account, switch to `CodeDeploy` for one service instead of forcing both.
-- Do not use both unless the team explicitly needs blue/green deployment and has already verified the extra AWS permissions.
+- Default to `CodeDeploy` for one ECS service.
+- Use GitHub as the source of truth for all code.
+- Use S3 to keep deployable artifacts that you want to re-run later during demo day.
+- Build and push the Docker image from local Docker or AWS Cloud9.
 
 **Acceptance criteria:**
 - The team records which path will be demonstrated.
 - The chosen path is feasible in the actual AWS account and region.
 
-### Task 5.2: Setup Source Repository (CodeCommit or S3)
+### Task 5.3: Setup Durable Source And Artifact Storage
 
 **Read first:**
 - .planning/GROUP_TASK_PLAN_145337.md (Section 1 — CI/CD decisions)
 
 **Action:**
-Primary approach (CodeCommit):
-1. Create CodeCommit repository: agritour-tour-catalog (or whichever service is chosen for pipeline)
-2. Push service code to CodeCommit:
-   ```bash
-   # Configure CodeCommit credential helper
-   git config --global credential.helper '!aws codecommit credential-helper $@'
-   git config --global credential.UseHttpPath true
-   
-   # Clone and push
-   cd services/tour-catalog
-   git init
-   git remote add codecommit https://git-codecommit.us-east-1.amazonaws.com/v1/repos/agritour-tour-catalog
-   git add .
-   git commit -m "initial service code"
-   git push codecommit main
-   ```
+Primary approach:
+1. Keep the full codebase in GitHub as the source of truth.
+2. Create one versioned S3 bucket for deployable artifacts.
+3. Store these S3 artifacts there:
+   - frontend `dist/`
+   - CodeDeploy bundle for the redeploy-demo service
 
-Fallback approach (if CodeCommit is unavailable in Learner Lab):
-1. Create S3 bucket: agritour-pipeline-source
-2. Zip service code and upload:
-   ```bash
-   cd services/tour-catalog
-   zip -r tour-catalog-source.zip . -x "node_modules/*"
-   aws s3 cp tour-catalog-source.zip s3://agritour-pipeline-source/tour-catalog-source.zip
-   ```
-3. Enable S3 versioning (required for CodePipeline S3 source)
+Fallback approach:
+1. If GitHub is unavailable during a working session, package the needed service or frontend artifact from the local machine.
+2. Upload the artifact to the same S3 bucket and deploy from there.
 
 **Acceptance criteria:**
-- Either: CodeCommit repo agritour-tour-catalog contains service code
-- Or: S3 bucket agritour-pipeline-source contains tour-catalog-source.zip with versioning enabled
-- Document which approach was used in infra/pipeline-setup.md
+- GitHub contains the current project source.
+- S3 contains the versioned deployment artifacts needed for the demo.
+- The team documents which S3 objects correspond to which deployment.
 
-### Task 5.3: Create CodeBuild Project
+### Task 5.4: Build And Push The Image
 
 **Read first:**
 - services/tour-catalog/Dockerfile
 
 **Action:**
-1. Create buildspec.yml at infra/buildspec.yml:
-```yaml
-version: 0.2
-
-phases:
-  pre_build:
-    commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
-      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=${COMMIT_HASH:=latest}
-  build:
-    commands:
-      - echo Building the Docker image...
-      - docker build -t $REPOSITORY_URI:latest .
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
-  post_build:
-    commands:
-      - echo Pushing the Docker image...
-      - docker push $REPOSITORY_URI:latest
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Writing image definitions file...
-      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
-
-artifacts:
-  files:
-    - imagedefinitions.json
-```
-
-2. Create CodeBuild project in AWS Console:
-   - Project name: agritour-tour-catalog-build
-   - Environment: Managed image, Amazon Linux 2, Standard runtime
-   - Privileged mode: enabled (required for Docker builds)
-   - Service role: create new or use existing with ECR push permissions
-   - Buildspec: use buildspec.yml from source
-   - Environment variables:
-     - AWS_DEFAULT_REGION: us-east-1
-     - AWS_ACCOUNT_ID: {account_id}
-     - IMAGE_REPO_NAME: agritour-tour-catalog
-     - CONTAINER_NAME: tour-catalog
+1. Build the image from an allowed environment:
+   - local Docker on the developer machine, or
+   - AWS Cloud9 using a supported EC2 size
+2. Log in to ECR and push the new image tag.
+3. Record the exact image URI that will be deployed.
+4. Record the exact image tag for each of the 3 services so later ECS updates are deterministic.
 
 **Acceptance criteria:**
-- infra/buildspec.yml exists and contains `docker build`
-- infra/buildspec.yml contains `imagedefinitions.json`
-- CodeBuild project agritour-tour-catalog-build exists in AWS Console
-- Manual build succeeds and pushes image to ECR
+- A new image tag exists in ECR for the chosen service.
+- The team can repeat the build and push from the chosen environment.
 
-### Task 5.4: Create CodePipeline
+### Task 5.5: Create CodeDeploy Path
 
 **Action:**
-1. Create CodePipeline: agritour-tour-catalog-pipeline
-2. Configure stages:
-   - Source stage:
-     - If CodeCommit: provider=CodeCommit, repo=agritour-tour-catalog, branch=main
-     - If S3: provider=S3, bucket=agritour-pipeline-source, object key=tour-catalog-source.zip
-   - Build stage:
-     - Provider: CodeBuild
-     - Project: agritour-tour-catalog-build
-   - Deploy stage:
-     - Provider: Amazon ECS
-     - Cluster: agritour-cluster
-     - Service: agritour-tour-catalog-svc
-     - Image definitions file: imagedefinitions.json
-
-3. Trigger pipeline manually first to verify all stages pass
+1. Create a CodeDeploy application for the chosen ECS service.
+2. Create the deployment group tied to:
+   - the ECS cluster
+   - the ECS service
+   - the ALB listener and target groups used by that service
+3. Prepare the deployment artifact required by CodeDeploy ECS mode, including the deployment specification and task definition reference.
+4. Trigger one deployment using the new ECR image.
 
 **Acceptance criteria:**
-- CodePipeline agritour-tour-catalog-pipeline exists
-- Pipeline has 3 stages: Source, Build, Deploy
-- All 3 stages show Succeeded status after manual trigger
-- ECS service is updated with new task definition revision
+- CodeDeploy application and deployment group exist for one service.
+- One deployment reaches `Succeeded`.
+- ECS service updates to the new task definition or task set.
 
-### Task 5.5: Fallback If CodePipeline Is Unavailable
-
-**Action:**
-1. Use `tour-catalog` as the single demo service.
-2. Keep `infra/buildspec.yml` as the Docker build contract for ECR image creation.
-3. Use CodeDeploy only for the redeployment step:
-  - application: agritour-tour-catalog
-  - deployment group tied to the ECS service/task set
-  - artifact includes the image reference or deployment spec required by the chosen CodeDeploy ECS mode
-4. Demonstrate one visible change through this simpler path.
-
-**Acceptance criteria:**
-- A single CodeDeploy path exists and is demonstrated for one service.
-- The team can explain why CodePipeline was skipped in this specific account.
-- Evidence shows the new application version running after deployment.
-
-### Task 5.6: Demonstrate Redeployment
+### Task 5.7: Demonstrate Redeployment
 
 **Read first:**
 - SOA - Group Project.md (Section 4.F)
 
 **Action:**
 Pick one visible change from the project brief options:
-- Option A: UI change — modify a response message in tourController.js
-- Option B: Route change — add a new endpoint like GET /api/tours/featured
-- Option C: Functional improvement — add pagination to GET /api/tours
+- Option A: UI change
+- Option B: Route change
+- Option C: Small functional improvement
 
-Recommended: Option B (add GET /api/tours/featured that returns top 5 approved tours)
+Recommended: add `GET /api/tours/featured` returning top approved tours.
 
-1. Make the code change in services/tour-catalog/
-2. Push to CodeCommit (or upload new ZIP to S3)
-3. Pipeline triggers automatically (or trigger manually)
-4. Pipeline executes: Source -> Build (new Docker image) -> Deploy (ECS rolling update)
-5. Verify change is live via ALB URL
-6. Take screenshots of:
-   - Pipeline execution in progress
-   - All stages Succeeded
-   - New endpoint returning data via ALB
+1. Make the code change in `services/tour-catalog/`
+2. Push the code to GitHub and package the deployable artifact to S3
+3. Build and push the new image tag from local Docker or Cloud9
+4. Trigger CodeDeploy for ECS
+5. Verify the change is live via ALB URL
+6. Capture screenshots of:
+   - deployment execution in progress
+   - deployment `Succeeded`
+   - new endpoint returning data through ALB
 
 **Acceptance criteria:**
-- Code change is committed (new endpoint or modified response)
-- Pipeline re-executed after change
-- All pipeline stages show Succeeded
-- curl http://{ALB_DNS}/api/tours/featured returns new response (or whatever change was made)
-- Screenshots saved in docs/deployment-evidence/
+- The code change is committed.
+- The deployment is re-executed after the change.
+- The deployment shows `Succeeded`.
+- `curl http://{ALB_DNS}/api/tours/featured` returns the new result.
+- Screenshots are saved in `docs/deployment-evidence/`.
 
-### Task 5.7: Document Pipeline Setup
+### Task 5.8: Document Deployment Setup
 
 **Action:**
-Create infra/pipeline-setup.md documenting:
-- Source approach chosen (CodeCommit or S3) and why
-- CodeBuild configuration
-- CodePipeline stages
+Create `infra/deployment-setup.md` documenting:
+- source of truth in GitHub and why
+- S3 artifact storage layout
+- build environment choice (`local Docker` or `Cloud9`)
+- CodeDeploy steps
 - IAM roles used
-- How to trigger pipeline
-- How to rollback (previous task definition revision)
-- Cost considerations
+- rollback process
+- cost considerations
 
 **Acceptance criteria:**
-- infra/pipeline-setup.md exists
-- File contains `CodePipeline`
-- File contains `CodeDeploy`
-- File contains `CodeBuild`
-- File contains `rollback`
+- `infra/deployment-setup.md` exists
+- file contains `CodeDeploy`
+- file contains `GitHub`
+- file contains `S3`
+- file contains `LabRole`
+- file contains `rollback`
+
+### Task 5.9: Prepare Score-Maximizing Evidence Pack
+
+**Read first:**
+- SOA - Group Project.md (Sections 4, 5, 6)
+
+**Action:**
+1. Create one checklist that maps each scoring-sensitive brief requirement to concrete evidence.
+2. Confirm the demo covers these items:
+   - architecture diagram with browser, services, databases, AWS services, and traffic flow
+   - 3 containerized services running on ECS or Fargate
+   - ALB routing for all 3 service groups
+   - RDS database usage
+   - CloudWatch logs or monitoring evidence
+   - one CodeDeploy redeployment demo
+   - one main workflow or saga ready for explanation
+   - one failure scenario or graceful fallback ready for explanation
+3. Store the checklist where the team can use it during deployment rehearsal.
+
+**Acceptance criteria:**
+- The team has one evidence checklist covering Sections 4, 5, and 6 of the project brief.
+- The redeployment demo is no longer the only proof point for Phase 5.
+- The team can explain how the deployed system targets strong marks beyond the minimum CI/CD requirement.
 
 ## Verification
 
-- [ ] Pipeline exists and all stages succeed
-- [ ] One code change was deployed through the pipeline
-- [ ] ECS service shows new task definition revision after deployment
-- [ ] New change is accessible via ALB URL
-- [ ] Evidence screenshots captured in docs/deployment-evidence/
-- [ ] Pipeline documentation complete
+- [ ] One supported AWS redeployment path exists and succeeds
+- [ ] One visible code change is redeployed through that path
+- [ ] ECS service shows the new task definition revision or task set after deployment
+- [ ] The new change is accessible through ALB
+- [ ] Evidence screenshots are captured in `docs/deployment-evidence/`
+- [ ] Deployment documentation is complete

@@ -1,0 +1,74 @@
+{
+  "family": "agritour-identity-partner",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512",
+  "taskRoleArn": "REPLACE_WITH_TASK_ROLE_ARN",
+  "executionRoleArn": "REPLACE_WITH_EXECUTION_ROLE_ARN",
+  "containerDefinitions": [
+    {
+      "name": "identity-partner",
+      "image": "REPLACE_WITH_ECR_IMAGE_URI",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3003,
+          "hostPort": 3003,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "PORT",
+          "value": "3003"
+        },
+        {
+          "name": "DB_HOST",
+          "value": "REPLACE_WITH_DB_HOST"
+        },
+        {
+          "name": "DB_PORT",
+          "value": "3306"
+        },
+        {
+          "name": "DB_USER",
+          "value": "REPLACE_WITH_DB_USER"
+        },
+        {
+          "name": "DB_PASSWORD",
+          "value": "REPLACE_WITH_DB_PASSWORD"
+        },
+        {
+          "name": "DB_NAME",
+          "value": "agritour_identity"
+        },
+        {
+          "name": "JWT_SECRET",
+          "value": "REPLACE_WITH_JWT_SECRET"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/agritour-identity-partner",
+          "awslogs-region": "REPLACE_WITH_AWS_REGION",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group": "true"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:3003/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      }
+    }
+  ]
+}

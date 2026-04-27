@@ -20,7 +20,7 @@ Client → S3 (Frontend) → ALB → ECS Fargate (3 Services) → RDS MySQL
 | Identity Partner | Auth, users, partners | 3003 | Group B |
 
 ### AWS Services Used
-Docker, Amazon ECR, Amazon ECS Fargate, Application Load Balancer, Amazon RDS, CloudWatch, CodePipeline/CodeDeploy
+Docker, Amazon ECR, Amazon ECS Fargate, Application Load Balancer, Amazon RDS, CloudWatch, Amazon S3, CodeDeploy
 
 ### Planning Documents
 See `.planning/` directory for:
@@ -79,7 +79,7 @@ AI-powered chatbot helping customers find suitable tours based on date, location
 ### Infrastructure
 - Docker, Amazon ECR, Amazon ECS Fargate
 - Application Load Balancer, Amazon RDS MySQL
-- Amazon S3, CloudWatch, CodePipeline
+- Amazon S3, CloudWatch, CodeDeploy
 
 ---
 

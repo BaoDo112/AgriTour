@@ -1,0 +1,63 @@
+{
+  "family": "agritour-tour-catalog",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "REPLACE_WITH_TASK_EXECUTION_ROLE_ARN",
+  "taskRoleArn": "REPLACE_WITH_TASK_ROLE_ARN",
+  "containerDefinitions": [
+    {
+      "name": "tour-catalog",
+      "image": "REPLACE_WITH_ECR_IMAGE_URI",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3001,
+          "hostPort": 3001,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "PORT",
+          "value": "3001"
+        },
+        {
+          "name": "DB_HOST",
+          "value": "REPLACE_WITH_DB_HOST"
+        },
+        {
+          "name": "DB_PORT",
+          "value": "3306"
+        },
+        {
+          "name": "DB_USER",
+          "value": "REPLACE_WITH_DB_USER"
+        },
+        {
+          "name": "DB_PASSWORD",
+          "value": "REPLACE_WITH_DB_PASSWORD"
+        },
+        {
+          "name": "DB_NAME",
+          "value": "agritour_catalog"
+        },
+        {
+          "name": "JWT_SECRET",
+          "value": "REPLACE_WITH_JWT_SECRET"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/agritour-tour-catalog",
+          "awslogs-region": "REPLACE_WITH_AWS_REGION",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

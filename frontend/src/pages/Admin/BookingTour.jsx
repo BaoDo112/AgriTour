@@ -112,11 +112,7 @@ const BookingTour = () => {
             </tr>
           </thead>
           <tbody>
-            {!hasBookings ? (
-              <tr>
-                <td colSpan="6">No bookings found.</td>
-              </tr>
-            ) : (
+            {hasBookings ? (
               filteredBookings.map((booking) => (
                 <tr key={booking.booking_id}>
                   <td>{booking.booking_id}</td>
@@ -131,6 +127,10 @@ const BookingTour = () => {
                   <td>{formatBookingDate(booking.booking_date || booking.start_date)}</td>
                 </tr>
               ))
+            ) : (
+              <tr>
+                <td colSpan="6">No bookings found.</td>
+              </tr>
             )}
           </tbody>
         </table>

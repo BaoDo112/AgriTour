@@ -28,11 +28,11 @@ Audit: .planning/v2-MILESTONE-AUDIT.md
 **Deliverables:** JWT middleware, RBAC enforcement, Saga workflow document and implementation (Booking to Payment), optional SQS/SNS async, integration smoke tests
 **Owner Model:** Group B leads security (Service C), all groups implement JWT verification, Team Lead documents Saga
 
-### Phase 5: CI/CD Pipeline and Redeployment Demo
-**Goal:** Build at least one working CI/CD pipeline and demonstrate one update through it.
+### Phase 5: Deployment and Redeployment Demo
+**Goal:** Build at least one working AWS redeployment path and demonstrate one update through it.
 **Requirements:** REQ-CICD-01, REQ-REDEPLOY-01, REQ-IAM-01
-**Deliverables:** CodePipeline with CodeCommit or S3 source, CodeBuild for Docker image, CodeDeploy or ECS rolling update, evidence of one redeployment
-**Owner Model:** Team Lead + one group (pipeline for their service)
+**Deliverables:** GitHub source workflow, versioned S3 deployment bundle, one CodeDeploy application and deployment group for the selected service, evidence of one redeployment
+**Owner Model:** Team Lead + one group (redeploy-demo owner for their service)
 
 ### Phase 6: Observability, Report, and Demo Preparation
 **Goal:** Enable CloudWatch monitoring, write technical report, prepare presentation and demo.

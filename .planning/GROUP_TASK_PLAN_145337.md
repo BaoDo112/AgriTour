@@ -15,7 +15,7 @@ Required AWS Features (Section 5 — ALL mandatory):
 - Amazon ECS or ECS Fargate: deploy services (team decision: Fargate)
 - Application Load Balancer: route traffic to services via path-based rules
 - Amazon RDS: database service (MySQL, 1 instance with 3 logical databases)
-- CodePipeline and or CodeDeploy: CI/CD for at least one service
+- CodeDeploy for at least one service, with durable source and artifact storage
 - CloudWatch: logs and monitoring evidence
 
 Additional requirements from brief:
@@ -23,7 +23,7 @@ Additional requirements from brief:
 - 2-3 microservices with clear responsibility, own API, running independently
 - One main workflow using Saga pattern in technical report
 - One failure scenario with handling (optional)
-- One update or redeployment demonstrated through pipeline
+- One update or redeployment demonstrated through the chosen deployment process
 - Technical report 20-30 pages
 - Presentation 15 minutes plus 10 minutes Q and A
 
@@ -31,8 +31,8 @@ Team decisions:
 - ECS launch type: Fargate (serverless, no EC2 management, pay for actual usage)
 - Database strategy: 1 RDS MySQL instance, 3 logical databases (agritour_catalog, agritour_booking, agritour_identity)
 - Frontend: S3 static hosting (decoupled from backend microservices)
-- CI/CD source: CodeCommit as pipeline source (Learner Lab IAM safe), with S3 source as fallback
-- Daily development: GitHub for team collaboration, mirror to CodeCommit for pipeline
+- Daily development: GitHub as the source of truth for the full codebase
+- Deployment artifacts: versioned S3 bucket for frontend builds and CodeDeploy bundles
 - Cost management: Set ECS Desired tasks to 0 when not working to preserve $50 budget
 
 ## 2) Target Microservice Split (3 Services)
@@ -164,7 +164,7 @@ Complexity ranking for assignment:
 Milestone M1: Service Design and Contract Freeze
 - Goal: produce architecture diagram, finalize boundaries, contracts, conventions
 - Exit criteria:
-  - Architecture diagram complete (Client, ALB, ECS, RDS, CloudWatch, ECR, CodePipeline)
+  - Architecture diagram complete (Client, ALB, ECS, RDS, CloudWatch, ECR, CodeDeploy, S3)
   - Service A, B, C API contract docs complete (OpenAPI)
   - Data ownership contract complete (3 logical databases)
   - Team conventions approved
@@ -199,14 +199,14 @@ Milestone M4: Security, Integration, and Saga
   - Integration smoke tests passing across services
   - Optional SQS/SNS async path documented or implemented
 
-Milestone M5: CI/CD Pipeline and Redeployment
-- Goal: build pipeline and demo one redeployment
+Milestone M5: Deployment and Redeployment
+- Goal: build the redeployment path and demo one redeployment
 - Exit criteria:
-  - CodePipeline created for at least 1 service
-  - Source stage connected to CodeCommit (or S3 fallback)
-  - Build stage produces Docker image and pushes to ECR
-  - Deploy stage updates ECS service
-  - One code change pushed through pipeline successfully
+  - CodeDeploy application and deployment group created for at least 1 service
+  - GitHub stores the current source code
+  - S3 stores the frontend build and the redeploy artifact bundle
+  - Updated Docker image pushed to ECR
+  - One code change redeployed successfully
   - Evidence screenshots captured
 
 Milestone M6: Observability, Report, and Demo
@@ -239,14 +239,14 @@ Milestone M6: Observability, Report, and Demo
 6. CloudWatch
 - Output: log groups per service, at least 1 alarm, monitoring evidence screenshots
 
-7. CodePipeline and CodeDeploy
-- Output: at least 1 pipeline with source (CodeCommit or S3), build (CodeBuild with Docker), deploy (ECS rolling update)
+7. CodeDeploy
+- Output: at least 1 redeployment path using GitHub source, S3 artifact storage, ECR image update, and ECS redeploy through CodeDeploy
 
 8. Amazon S3
 - Output: frontend static hosting bucket, optionally media storage for tour images
 
 9. IAM
-- Output: least-privilege roles for ECS task execution, RDS access, ECR pull, CodePipeline execution
+- Output: least-privilege roles for ECS task execution, RDS access, ECR pull, S3 access, and CodeDeploy execution
 
 10. SQS or SNS (optional)
 - Output: async notification path for booking events if implemented

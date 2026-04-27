@@ -16,11 +16,11 @@ Coverage summary:
 - [ ] REQ-ALB-01 (must): Configure Application Load Balancer with path-based routing to all services.
 - [ ] REQ-RDS-01 (must): Connect all services to Amazon RDS with database-per-service ownership (3 logical databases on 1 RDS instance).
 - [ ] REQ-CW-01 (must): Enable CloudWatch logs and monitoring evidence for all services.
-- [ ] REQ-CICD-01 (must): Implement at least one working CI/CD pipeline using CodePipeline and or CodeDeploy.
+- [ ] REQ-CICD-01 (must): Implement at least one working AWS redeployment mechanism for one microservice using CodeDeploy with versioned source or artifact storage.
 - [ ] REQ-SEC-01 (must): Enforce backend JWT and RBAC on protected routes.
 - [ ] REQ-IAM-01 (must): Apply least-privilege IAM roles and permissions for all AWS resources.
 - [ ] REQ-SAGA-01 (must): Document and implement one main workflow using Saga pattern in technical report.
-- [ ] REQ-REDEPLOY-01 (must): Demonstrate one update or redeployment through the pipeline or deployment process.
+- [ ] REQ-REDEPLOY-01 (must): Demonstrate one update or redeployment through the chosen deployment process.
 - [ ] REQ-REPORT-01 (must): Submit technical report 20-30 pages with architecture diagram, service descriptions, Saga workflow, failure scenario, AWS deployment evidence, and reflection.
 - [ ] REQ-S3-01 (should): Deploy frontend static hosting on S3.
 - [ ] REQ-TEST-01 (should): Add smoke and contract checks for critical service flows.
@@ -37,11 +37,11 @@ Coverage summary:
 | REQ-ALB-01 | must | Phase 3 | Pending | Path-based routing rules |
 | REQ-RDS-01 | must | Phase 3 | Pending | 1 RDS instance, 3 logical databases |
 | REQ-CW-01 | must | Phase 6 | Pending | Log groups and monitoring per service |
-| REQ-CICD-01 | must | Phase 5 | Pending | CodePipeline with CodeCommit or S3 source |
+| REQ-CICD-01 | must | Phase 5 | Pending | CodeDeploy with GitHub source of truth and S3 deployment artifact |
 | REQ-SEC-01 | must | Phase 4 | Pending | JWT issuance and verification, RBAC |
-| REQ-IAM-01 | must | Phase 3, Phase 5 | Pending | Least-privilege for ECS, RDS, ECR, Pipeline |
+| REQ-IAM-01 | must | Phase 3, Phase 5 | Pending | Least-privilege for ECS, RDS, ECR, S3, and CodeDeploy |
 | REQ-SAGA-01 | must | Phase 4 | Pending | Booking to Payment to Notification saga |
-| REQ-REDEPLOY-01 | must | Phase 5 | Pending | One change pushed through pipeline |
+| REQ-REDEPLOY-01 | must | Phase 5 | Pending | One change redeployed through CodeDeploy |
 | REQ-REPORT-01 | must | Phase 6 | Pending | 20-30 page report and presentation slides |
 | REQ-S3-01 | should | Phase 3 | Pending | Frontend static hosting |
 | REQ-TEST-01 | should | Phase 2, Phase 4 | Pending | Smoke tests and contract checks |
